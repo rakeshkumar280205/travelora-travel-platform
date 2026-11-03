@@ -26,6 +26,18 @@ export async function findPublishedPackageBySlug(slug: string) {
   });
 }
 
+export async function listRelatedPublishedPackages(slug: string) {
+  return prisma.package.findMany({
+    where: {
+      status: "PUBLISHED",
+      slug: { not: slug },
+    },
+    include: packageInclude,
+    orderBy: { createdAt: "desc" },
+    take: 3,
+  });
+}
+
 export async function listAllPackages() {
   return prisma.package.findMany({
     include: packageInclude,

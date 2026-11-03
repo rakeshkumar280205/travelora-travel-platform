@@ -5,6 +5,7 @@ import type { Prisma } from "@prisma/client";
 import {
   createPackage,
   findPublishedPackageBySlug,
+  listRelatedPublishedPackages,
   listAllPackages,
   listPublishedPackages,
   updatePackage,
@@ -68,6 +69,10 @@ export async function getPublishedPackages() {
 
 export async function getPublishedPackageBySlug(slug: string) {
   return findPublishedPackageBySlug(slug);
+}
+
+export async function getRelatedPublishedPackages(slug: string) {
+  return listRelatedPublishedPackages(slug);
 }
 
 export async function getAdminPackages() {
