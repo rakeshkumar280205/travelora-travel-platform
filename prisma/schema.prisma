@@ -18,6 +18,23 @@ enum PackageStatus {
   PUBLISHED
 }
 
+enum EnquiryStatus {
+  NEW
+  IN_PROGRESS
+  WAITING_FOR_CUSTOMER
+  RESPONDED
+  CONVERTED
+  CLOSED
+}
+
+enum EnquiryActivityType {
+  CREATED
+  STATUS_CHANGED
+  ASSIGNED
+  NOTE_ADDED
+  REPLY_DRAFT_SAVED
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -26,6 +43,10 @@ model User {
   role         UserRole @default(CONSULTANT)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  assignedEnquiries Enquiry[] @relation("AssignedEnquiries")
+  enquiryNotes     EnquiryNote[] @relation("EnquiryNoteAuthors")
+  enquiryReplies   EnquiryReply[] @relation("EnquiryReplyAuthors")
+  enquiryActivities EnquiryActivity[] @relation("EnquiryActivityActors")
 }
 
 model Package {
@@ -45,6 +66,85 @@ model Package {
   publishedVersionId String?          @unique
   versions           PackageVersion[] @relation("PackageVersions")
   publishedVersion   PackageVersion?  @relation("PublishedPackageVersion", fields: [publishedVersionId], references: [id], onDelete: SetNull)
+  enquiries          Enquiry[]
+}
+
+model Enquiry {
+  id                  String        @id @default(cuid())
+  customerName        String
+  email               String
+  phone               String?
+  message             String
+  packageId           String?
+  destination         String
+  startDate           DateTime?
+  travelMonth         String?
+  durationDays        Int?
+  adults              Int
+  children            Int?
+  budget              Decimal?      @db.Decimal(12, 2)
+  currency            String?
+  status              EnquiryStatus @default(NEW)
+  assignedConsultantId String?
+  whatsappConsent     Boolean       @default(false)
+  whatsappConsentAt   DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  package             Package?      @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  assignedConsultant User?         @relation("AssignedEnquiries", fields: [assignedConsultantId], references: [id], onDelete: SetNull)
+  notes               EnquiryNote[]
+  replies             EnquiryReply[]
+  activities          EnquiryActivity[]
+
+  @@index([status, createdAt])
+  @@index([packageId])
+  @@index([assignedConsultantId, status])
+  @@index([email, createdAt])
+}
+
+model EnquiryNote {
+  id        String   @id @default(cuid())
+  enquiryId String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enquiry Enquiry @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+  author  User    @relation("EnquiryNoteAuthors", fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([enquiryId, createdAt])
+}
+
+model EnquiryReply {
+  id        String   @id @default(cuid())
+  enquiryId String
+  authorId  String
+  body      String
+  isDraft   Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  enquiry Enquiry @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+  author  User    @relation("EnquiryReplyAuthors", fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([enquiryId, updatedAt])
+}
+
+model EnquiryActivity {
+  id        String              @id @default(cuid())
+  enquiryId String
+  actorId   String?
+  type      EnquiryActivityType
+  metadata  Json?
+  createdAt DateTime            @default(now())
+
+  enquiry Enquiry @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+  actor   User?   @relation("EnquiryActivityActors", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([enquiryId, createdAt])
+  @@index([type, createdAt])
 }
 
 model SeasonalPrice {

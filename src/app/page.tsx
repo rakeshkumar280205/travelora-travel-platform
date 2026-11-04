@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { DestinationCard } from "@/components/travel/destination-card";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
+import { EnquiryForm } from "@/components/forms/enquiry-form";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { FeaturedJourneys } from "@/features/packages/featured-journeys";
 import { FeaturedJourneysSkeleton } from "@/features/packages/featured-journeys-skeleton";
@@ -199,7 +200,7 @@ export default function Home() {
         </section>
 
         <section id="enquire" className="bg-gold px-6 py-24 sm:px-10 lg:px-16 lg:py-28">
-          <div className="mx-auto flex max-w-7xl flex-col justify-between gap-10 lg:flex-row lg:items-end">
+          <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
             <div className="max-w-2xl">
               <p className="text-xs font-medium uppercase tracking-[0.3em] text-deep-green/70">
                 Your next chapter
@@ -208,9 +209,7 @@ export default function Home() {
                 Let&apos;s make it memorable.
               </h2>
             </div>
-            <Button href="mailto:hello@travelora.example" variant="dark">
-              Start a conversation <span aria-hidden="true">↗</span>
-            </Button>
+            <EnquiryForm />
           </div>
         </section>
       </main>

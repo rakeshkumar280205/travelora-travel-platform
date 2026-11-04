@@ -4,6 +4,7 @@ import { connection } from "next/server";
 import type { Metadata } from "next";
 
 import { Button } from "@/components/ui/button";
+import { EnquiryForm } from "@/components/forms/enquiry-form";
 import { ResilientImage } from "@/components/ui/resilient-image";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
@@ -70,12 +71,6 @@ export default async function PackageDetailPage({ params }: PackagePageProps) {
     const amount = Number(price.amount);
     return Number.isFinite(amount) && amount > 0;
   });
-  const enquirySubject = encodeURIComponent(`Enquiry: ${packageRecord.title}`);
-  const enquiryBody = encodeURIComponent(
-    `Hello Travelora,\n\nI would like to enquire about ${packageRecord.title} (${packageRecord.slug}).\n\nPlease share the next steps.`
-  );
-  const enquiryHref = `mailto:hello@travelora.example?subject=${enquirySubject}&body=${enquiryBody}`;
-
   return (
     <div className="min-h-screen bg-ivory">
       <Header />
@@ -109,7 +104,7 @@ export default async function PackageDetailPage({ params }: PackagePageProps) {
               <h1 className="font-display mt-6 max-w-4xl text-5xl leading-[0.98] tracking-[-0.03em] sm:text-7xl lg:text-8xl">
                 {packageRecord.title}
               </h1>
-              <Button href={enquiryHref} className="mt-8">
+              <Button href="#enquire" className="mt-8">
                 Enquire about this journey <span aria-hidden="true">↗</span>
               </Button>
             </div>
@@ -246,22 +241,20 @@ export default async function PackageDetailPage({ params }: PackagePageProps) {
         )}
 
         <section id="enquire" className="bg-gold px-6 py-20 sm:px-10 lg:px-16 lg:py-24">
-          <div className="mx-auto flex max-w-7xl flex-col justify-between gap-8 sm:flex-row sm:items-center">
+          <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.7fr_1.3fr] lg:items-start">
             <div>
               <p className="text-xs uppercase tracking-[0.25em] text-deep-green/70">Make it yours</p>
               <h2 className="font-display mt-3 text-4xl text-deep-green">Ready to begin?</h2>
               <p className="mt-3 max-w-lg text-sm text-deep-green/70">
-                Your email will include this journey&apos;s title and package reference for context.
+                Share your travel plans and our team will review the details for this journey.
               </p>
             </div>
-            <Button href={enquiryHref} variant="dark">
-              Start a conversation <span aria-hidden="true">↗</span>
-            </Button>
+            <EnquiryForm packageSlug={packageRecord.slug} destination={packageRecord.destination} />
           </div>
         </section>
       </main>
       <div className="sticky bottom-0 z-10 border-t border-deep-green/10 bg-deep-green p-3 sm:hidden">
-        <Button href={enquiryHref} className="w-full">
+        <Button href="#enquire" className="w-full">
           Enquire about this journey
         </Button>
       </div>

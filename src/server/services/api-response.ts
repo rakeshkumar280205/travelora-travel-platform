@@ -79,3 +79,22 @@ export function notFoundResponse() {
     { status: 404 }
   );
 }
+
+export function badRequestResponse(message: string) {
+  return Response.json(
+    {
+      error: {
+        code: "BAD_REQUEST",
+        message,
+      },
+    },
+    { status: 400 },
+  );
+}
+
+export function serviceUnavailableResponse(message: string) {
+  return Response.json(
+    { error: { code: "SERVICE_UNAVAILABLE", message } },
+    { status: 503 },
+  );
+}

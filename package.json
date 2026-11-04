@@ -12,6 +12,7 @@
     "db:seed": "node prisma/seed.mjs"
   },
   "dependencies": {
+    "@google/genai": "^2.32.0",
     "@prisma/client": "^6.16.1",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
