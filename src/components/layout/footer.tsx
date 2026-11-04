@@ -31,6 +31,9 @@ export function Footer() {
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-gold">Say hello</p>
           <p className="mt-5 text-sm text-white/65">Contact details coming soon.</p>
+          <Link href="/admin/signin" className="mt-4 inline-flex text-sm text-gold hover:text-white">
+            Admin / staff login
+          </Link>
         </div>
       </div>
       <div className="mx-auto mt-14 flex max-w-7xl flex-col gap-3 border-t border-white/10 pt-6 text-xs text-white/35 sm:flex-row sm:justify-between">

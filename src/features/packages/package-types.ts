@@ -32,10 +32,18 @@ export function getPackageImage(destination: string) {
       "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=1400&q=85",
   };
 
-  return (
-    images[destination] ??
-    "https://images.unsplash.com/photo-1470214304380-aadaedcfff1b?auto=format&fit=crop&w=1400&q=85"
-  );
+  return images[destination] ?? "";
+}
+
+export function getPackageFallbackImage(destination: string) {
+  const fallbacks: Record<string, string> = {
+    Kerala:
+      "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=1400&q=85",
+    "Tamil Nadu":
+      "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1400&q=85",
+  };
+
+  return fallbacks[destination] ?? "";
 }
 
 export function getLowestPrice(packageRecord: DiscoveryPackage) {

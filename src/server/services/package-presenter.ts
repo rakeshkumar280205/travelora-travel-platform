@@ -15,8 +15,8 @@ export function presentPackage(packageRecord: {
   seasonalPrices: Array<{
     id: string;
     seasonName: string;
-    startDate: Date;
-    endDate: Date;
+    startDate: Date | string;
+    endDate: Date | string;
     amount: unknown;
     currency: string;
     pricingBasis: string;

@@ -2,12 +2,13 @@ import { packageUpdateSchema } from "@/lib/validation/package-schemas";
 import { connection } from "next/server";
 import {
   errorResponse,
+  forbiddenResponse,
   notFoundResponse,
   unauthorizedResponse,
 } from "@/server/services/api-response";
 import { presentPackage } from "@/server/services/package-presenter";
 import { editPackage } from "@/server/services/package-service";
-import { hasStaffRole } from "@/server/services/authorization";
+import { getStaffSession } from "@/server/services/authorization";
 
 export async function PATCH(
   request: Request,
@@ -15,8 +16,10 @@ export async function PATCH(
 ) {
   try {
     await connection();
-    if (!(await hasStaffRole(["ADMIN", "EDITOR"]))) {
-      return unauthorizedResponse();
+    const session = await getStaffSession();
+    if (!session) return unauthorizedResponse();
+    if (!["ADMIN", "EDITOR"].includes(session.user.role)) {
+      return forbiddenResponse();
     }
     const { id } = await params;
     const input = packageUpdateSchema.parse(await request.json());

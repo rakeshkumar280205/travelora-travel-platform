@@ -2,6 +2,7 @@ import { packageCreateSchema } from "@/lib/validation/package-schemas";
 import { connection } from "next/server";
 import {
   errorResponse,
+  forbiddenResponse,
   unauthorizedResponse,
 } from "@/server/services/api-response";
 import { presentPackages } from "@/server/services/package-presenter";
@@ -9,7 +10,7 @@ import {
   addPackage,
   getAdminPackages,
 } from "@/server/services/package-service";
-import { hasStaffRole } from "@/server/services/authorization";
+import { getStaffSession, hasStaffRole } from "@/server/services/authorization";
 
 export async function GET() {
   try {
@@ -26,8 +27,10 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     await connection();
-    if (!(await hasStaffRole(["ADMIN", "EDITOR"]))) {
-      return unauthorizedResponse();
+    const session = await getStaffSession();
+    if (!session) return unauthorizedResponse();
+    if (!["ADMIN", "EDITOR"].includes(session.user.role)) {
+      return forbiddenResponse();
     }
     const input = packageCreateSchema.parse(await request.json());
     const packageRecord = await addPackage(input);

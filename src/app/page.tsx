@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import { DestinationCard } from "@/components/travel/destination-card";
@@ -8,6 +7,7 @@ import { Header } from "@/components/layout/header";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { FeaturedJourneys } from "@/features/packages/featured-journeys";
 import { FeaturedJourneysSkeleton } from "@/features/packages/featured-journeys-skeleton";
+import { ResilientImage } from "@/components/ui/resilient-image";
 
 const destinations = [
   {
@@ -15,36 +15,48 @@ const destinations = [
     region: "Kerala",
     image:
       "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=1200&q=85",
+    fallback:
+      "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=85",
   },
   {
     name: "Thekkady",
     region: "Kerala",
     image:
       "https://images.unsplash.com/photo-1593693397690-362cb9666fc2?auto=format&fit=crop&w=1200&q=85",
+    fallback:
+      "https://images.unsplash.com/photo-1532664189809-02133fee698d?auto=format&fit=crop&w=1200&q=85",
   },
   {
     name: "Alleppey",
     region: "Kerala",
     image:
       "https://images.unsplash.com/photo-1596178060810-72f53ce9a65c?auto=format&fit=crop&w=1200&q=85",
+    fallback:
+      "https://images.unsplash.com/photo-1470214304380-aadaedcfff1b?auto=format&fit=crop&w=1200&q=85",
   },
   {
     name: "Madurai",
     region: "Tamil Nadu",
     image:
       "https://images.unsplash.com/photo-1582510003544-4d00b7f74220?auto=format&fit=crop&w=1200&q=85",
+    fallback:
+      "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=85",
   },
   {
     name: "Rameswaram",
     region: "Tamil Nadu",
     image:
-      "https://images.unsplash.com/photo-1600100397608-f010a2f5c2e6?auto=format&fit=crop&w=1200&q=85",
+      "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1200&q=85",
+    fallback:
+      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=85",
   },
   {
     name: "Kanyakumari",
     region: "Tamil Nadu",
     image:
       "https://images.unsplash.com/photo-1593693411515-c20261bcad6e?auto=format&fit=crop&w=1200&q=85",
+    fallback:
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1200&q=85",
   },
 ];
 
@@ -56,7 +68,7 @@ export default function Home() {
       <main>
         <section className="relative isolate min-h-[min(760px,88vh)] bg-deep-green text-white">
           <div className="absolute inset-0 -z-10">
-            <Image
+            <ResilientImage
               src="https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=2200&q=90"
               alt=""
               fill

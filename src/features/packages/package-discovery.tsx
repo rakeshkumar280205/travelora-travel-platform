@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { ResilientImage } from "@/components/ui/resilient-image";
 import Link from "next/link";
 import { ArrowUpRight, ChevronDown, Filter, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -11,6 +11,7 @@ import {
   formatPrice,
   getLowestPrice,
   getPackageImage,
+  getPackageFallbackImage,
 } from "@/features/packages/package-types";
 
 type PackageDiscoveryProps = {
@@ -272,8 +273,9 @@ function DiscoveryCard({ packageRecord }: { packageRecord: DiscoveryPackage }) {
     <article className="group overflow-hidden border border-charcoal/10 bg-white">
       <Link href={`/packages/${packageRecord.slug}`} className="block">
         <div className="relative aspect-[4/3] overflow-hidden">
-          <Image
+          <ResilientImage
             src={getPackageImage(packageRecord.destination)}
+            fallbackSrc={getPackageFallbackImage(packageRecord.destination)}
             alt={`${packageRecord.destination} landscape`}
             fill
             sizes="(max-width: 768px) 100vw, 42vw"

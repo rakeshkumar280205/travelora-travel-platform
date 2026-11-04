@@ -1,9 +1,10 @@
-import Image from "next/image";
+import { ResilientImage } from "@/components/ui/resilient-image";
 
 type DestinationCardProps = {
   name: string;
   region: string;
   image: string;
+  fallbackImage?: string;
   featured?: boolean;
 };
 
@@ -11,12 +12,14 @@ export function DestinationCard({
   name,
   region,
   image,
+  fallbackImage,
   featured = false,
 }: DestinationCardProps) {
   return (
     <article className={`group relative overflow-hidden ${featured ? "sm:row-span-2 sm:min-h-[520px]" : "min-h-[250px]"}`}>
-      <Image
+      <ResilientImage
         src={image}
+        fallbackSrc={fallbackImage}
         alt={`${name} landscape`}
         fill
         sizes={featured ? "(max-width: 640px) 100vw, 50vw" : "(max-width: 1024px) 50vw, 33vw"}

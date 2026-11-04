@@ -29,19 +29,22 @@ model User {
 }
 
 model Package {
-  id             String          @id @default(cuid())
-  slug           String          @unique
-  title          String
-  destination    String
-  durationDays   Int
-  description    String
-  category       String
-  hotelCategory  String
-  status         PackageStatus   @default(DRAFT)
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  seasonalPrices SeasonalPrice[]
-  itineraryDays  ItineraryDay[]
+  id                 String           @id @default(cuid())
+  slug               String           @unique
+  title              String
+  destination        String
+  durationDays       Int
+  description        String
+  category           String
+  hotelCategory      String
+  status             PackageStatus    @default(DRAFT)
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  seasonalPrices     SeasonalPrice[]
+  itineraryDays      ItineraryDay[]
+  publishedVersionId String?          @unique
+  versions           PackageVersion[] @relation("PackageVersions")
+  publishedVersion   PackageVersion?  @relation("PublishedPackageVersion", fields: [publishedVersionId], references: [id], onDelete: SetNull)
 }
 
 model SeasonalPrice {
@@ -68,4 +71,19 @@ model ItineraryDay {
 
   @@unique([packageId, dayNumber])
   @@index([packageId])
+}
+
+model PackageVersion {
+  id            String   @id @default(cuid())
+  packageId     String
+  versionNumber Int
+  snapshot      Json
+  createdBy     String?
+  createdAt     DateTime @default(now())
+
+  package      Package  @relation("PackageVersions", fields: [packageId], references: [id], onDelete: Cascade)
+  publishedFor Package? @relation("PublishedPackageVersion")
+
+  @@unique([packageId, versionNumber])
+  @@index([packageId, createdAt])
 }

@@ -16,6 +16,23 @@ export function errorResponse(error: unknown) {
     );
   }
 
+  if (
+    error &&
+    typeof error === "object" &&
+    "code" in error &&
+    error.code === "P2002"
+  ) {
+    return Response.json(
+      {
+        error: {
+          code: "CONFLICT",
+          message: "A record with the same unique value already exists.",
+        },
+      },
+      { status: 409 },
+    );
+  }
+
   return Response.json(
     {
       error: {
@@ -36,6 +53,18 @@ export function unauthorizedResponse() {
       },
     },
     { status: 401 }
+  );
+}
+
+export function forbiddenResponse() {
+  return Response.json(
+    {
+      error: {
+        code: "FORBIDDEN",
+        message: "You do not have permission to perform this action.",
+      },
+    },
+    { status: 403 },
   );
 }
 

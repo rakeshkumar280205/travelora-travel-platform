@@ -14,8 +14,8 @@ export async function getDiscoveryPackages(): Promise<DiscoveryPackage[]> {
     updatedAt: item.updatedAt.toISOString(),
     seasonalPrices: item.seasonalPrices.map((price) => ({
       ...price,
-      startDate: price.startDate.toISOString(),
-      endDate: price.endDate.toISOString(),
+      startDate: new Date(price.startDate).toISOString(),
+      endDate: new Date(price.endDate).toISOString(),
     })),
   }));
 }

@@ -1,16 +1,17 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import type { Metadata } from "next";
 
 import { Button } from "@/components/ui/button";
+import { ResilientImage } from "@/components/ui/resilient-image";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { PackageCard } from "@/components/travel/package-card";
 import {
   formatAmount,
   getPackageImage,
+  getPackageFallbackImage,
 } from "@/features/packages/package-types";
 import {
   getPublishedPackageBySlug,
@@ -20,6 +21,8 @@ import {
 type PackagePageProps = {
   params: Promise<{ slug: string }>;
 };
+
+export const instant = false;
 
 async function getPackage(slug: string) {
   await connection();
@@ -78,8 +81,9 @@ export default async function PackageDetailPage({ params }: PackagePageProps) {
       <Header />
       <main>
         <section className="relative isolate min-h-[620px] bg-deep-green text-white">
-          <Image
+          <ResilientImage
             src={getPackageImage(packageRecord.destination)}
+            fallbackSrc={getPackageFallbackImage(packageRecord.destination)}
             alt={`${packageRecord.destination} landscape`}
             fill
             priority
@@ -284,11 +288,11 @@ function InfoPanel({ title, body }: { title: string; body: string }) {
   );
 }
 
-function formatDate(value: Date) {
+function formatDate(value: Date | string) {
   return new Intl.DateTimeFormat("en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric",
     timeZone: "UTC",
-  }).format(value);
+  }).format(new Date(value));
 }
