@@ -15,8 +15,8 @@ export function VersionHistory({ packageId, canRollback }: { packageId: string; 
       .catch(() => setMessage("Version history could not be loaded."));
   }, [packageId]);
 
-  async function rollback(versionId: string) {
-    if (!window.confirm("Restore this version and publish it as a new version?")) return;
+  async function rollback(versionId: string, versionNumber: number) {
+    if (!window.confirm(`Restore Version ${versionNumber} and publish it as a new public version?`)) return;
     const response = await fetch(`/api/admin/packages/${packageId}/versions/${versionId}/rollback`, { method: "POST" });
     if (!response.ok) {
       setMessage("Rollback could not be completed.");
@@ -26,11 +26,15 @@ export function VersionHistory({ packageId, canRollback }: { packageId: string; 
   }
 
   return (
-    <section className="border border-charcoal/10 bg-white p-6 sm:p-8">
-      <h2 className="font-display text-2xl text-forest">Version history</h2>
-      {message && <p role="alert" className="mt-4 text-sm text-red-700">{message}</p>}
+    <section className="border border-charcoal/10 bg-white p-6 sm:p-8" aria-labelledby="version-history-heading">
+      <h2 id="version-history-heading" className="font-display text-2xl text-forest">Version history</h2>
+      {message && (
+        <div role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          {message}
+        </div>
+      )}
       {versions.length === 0 ? (
-        <p className="mt-5 text-sm text-charcoal/55">No published versions yet.</p>
+        <p className="mt-5 text-sm text-charcoal/60">No published versions yet.</p>
       ) : (
         <div className="mt-5 divide-y divide-charcoal/10">
           {versions.map((version) => (
@@ -40,8 +44,21 @@ export function VersionHistory({ packageId, canRollback }: { packageId: string; 
                 <p className="mt-1 text-xs text-charcoal/50">{new Date(version.createdAt).toLocaleString("en-IN")} · {version.createdBy ?? "System migration"}</p>
               </div>
               <div className="flex items-center gap-4">
-                {version.package.publishedVersionId === version.id && <span className="text-xs font-medium uppercase tracking-[0.12em] text-gold">Current</span>}
-                {canRollback && <button type="button" onClick={() => rollback(version.id)} className="text-sm font-medium text-forest hover:text-gold">Rollback</button>}
+                {version.package.publishedVersionId === version.id && (
+                  <span className="rounded-full bg-gold/20 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-deep-green">
+                    Current
+                  </span>
+                )}
+                {canRollback && (
+                  <button
+                    type="button"
+                    onClick={() => rollback(version.id, version.versionNumber)}
+                    aria-label={`Rollback to version ${version.versionNumber}`}
+                    className="rounded text-sm font-medium text-forest hover:text-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold px-2 py-1 cursor-pointer"
+                  >
+                    Rollback
+                  </button>
+                )}
               </div>
             </div>
           ))}

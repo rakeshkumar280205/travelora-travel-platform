@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import type { Metadata } from "next";
 
+import { getSiteUrl } from "@/config/env";
 import { Button } from "@/components/ui/button";
 import { EnquiryForm } from "@/components/forms/enquiry-form";
 import { ResilientImage } from "@/components/ui/resilient-image";
@@ -44,16 +45,19 @@ export async function generateMetadata({
   }
 
   const description = `${packageRecord.title} — a ${packageRecord.durationDays}-day journey through ${packageRecord.destination} with Travelora.`;
-  const canonicalUrl = `/packages/${packageRecord.slug}`;
+  const siteUrl = getSiteUrl();
+  const canonicalUrl = siteUrl
+    ? new URL(`/packages/${packageRecord.slug}`, siteUrl).toString()
+    : undefined;
 
   return {
     title: `${packageRecord.title} | Travelora`,
     description,
-    alternates: { canonical: canonicalUrl },
+    ...(canonicalUrl ? { alternates: { canonical: canonicalUrl } } : {}),
     openGraph: {
       title: `${packageRecord.title} | Travelora`,
       description,
-      url: canonicalUrl,
+      ...(canonicalUrl ? { url: canonicalUrl } : {}),
       type: "article",
       images: [{ url: getPackageImage(packageRecord.destination), alt: packageRecord.title }],
     },
@@ -151,12 +155,12 @@ export default async function PackageDetailPage({ params }: PackagePageProps) {
                 {packageRecord.itineraryDays.length > 0 ? (
                   packageRecord.itineraryDays.map((day, index) => (
                     <details key={day.id} open={index === 0} className="group py-5">
-                      <summary className="flex cursor-pointer list-none items-center gap-5 [&::-webkit-details-marker]:hidden">
-                        <span className="text-xs uppercase tracking-[0.18em] text-gold">Day {day.dayNumber}</span>
-                        <span className="font-display text-2xl text-forest">{day.title}</span>
+                      <summary className="flex cursor-pointer list-none items-center gap-3 sm:gap-5 rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold [&::-webkit-details-marker]:hidden">
+                        <span className="text-xs uppercase tracking-[0.18em] text-gold shrink-0">Day {day.dayNumber}</span>
+                        <span className="font-display text-xl sm:text-2xl text-forest">{day.title}</span>
                         <span className="ml-auto text-2xl font-light text-charcoal/40 transition-transform group-open:rotate-45" aria-hidden="true">+</span>
                       </summary>
-                      <p className="max-w-2xl pl-[4.5rem] pt-4 text-sm leading-7 text-charcoal/60">
+                      <p className="max-w-2xl pl-0 sm:pl-[4.5rem] pt-4 text-sm leading-7 text-charcoal/65">
                         {day.description}
                       </p>
                     </details>

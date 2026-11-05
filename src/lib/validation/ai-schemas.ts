@@ -1,18 +1,105 @@
 import { z } from "zod";
 
-const confidenceSchema = z.enum(["high", "medium", "low", "unknown"]);
+const confidenceEnum = z.enum(["high", "medium", "low", "unknown"]);
+
+export const confidenceSchema = z.preprocess((val) => {
+  if (typeof val === "string") {
+    const lower = val.trim().toLowerCase();
+    if (["high", "medium", "low", "unknown"].includes(lower)) {
+      return lower;
+    }
+  }
+  return val;
+}, confidenceEnum);
+
+const nullableStringSchema = (maxLen: number) =>
+  z.preprocess((val) => {
+    if (val === undefined) return undefined;
+    if (val === null) return null;
+    if (typeof val === "string") {
+      const trimmed = val.trim();
+      if (!trimmed || trimmed.toLowerCase() === "null") return null;
+      return trimmed;
+    }
+    return val;
+  }, z.string().trim().max(maxLen).nullable());
+
+const nullableTravelMonthSchema = z.preprocess((val) => {
+  if (val === undefined) return undefined;
+  if (val === null) return null;
+  if (typeof val === "string") {
+    const trimmed = val.trim();
+    if (!trimmed || trimmed.toLowerCase() === "null") return null;
+    return trimmed;
+  }
+  return val;
+}, z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).nullable());
+
+const nullableCurrencySchema = z.preprocess((val) => {
+  if (val === undefined) return undefined;
+  if (val === null) return null;
+  if (typeof val === "string") {
+    const trimmed = val.trim();
+    if (!trimmed || trimmed.toLowerCase() === "null") return null;
+    return trimmed.toUpperCase();
+  }
+  return val;
+}, z.string().regex(/^[A-Z]{3}$/).nullable());
+
+const nullableIntSchema = (min: number, max: number) =>
+  z.preprocess((val) => {
+    if (val === undefined) return undefined;
+    if (val === null) return null;
+    if (typeof val === "string") {
+      const trimmed = val.trim();
+      if (!trimmed || trimmed.toLowerCase() === "null") return null;
+      if (/^\d+$/.test(trimmed)) {
+        return parseInt(trimmed, 10);
+      }
+    }
+    return val;
+  }, z.number().int().min(min).max(max).nullable());
+
+const nullableBudgetSchema = z.preprocess((val) => {
+  if (val === undefined) return undefined;
+  if (val === null) return null;
+  if (typeof val === "string") {
+    const trimmed = val.trim().replace(/,/g, "");
+    if (!trimmed || trimmed.toLowerCase() === "null") return null;
+    if (/^\d+(?:\.\d+)?$/.test(trimmed)) {
+      return Number(trimmed);
+    }
+  }
+  return val;
+}, z.number().nonnegative().max(100_000_000).nullable());
+
+const stringArraySchema = (maxItemLen: number, maxItems: number) =>
+  z.preprocess((val) => {
+    if (val === undefined) return undefined;
+    if (val === null) return [];
+    if (typeof val === "string") {
+      const trimmed = val.trim();
+      return trimmed ? [trimmed] : [];
+    }
+    if (Array.isArray(val)) {
+      return val
+        .map((item) => (typeof item === "string" ? item.trim() : String(item).trim()))
+        .filter(Boolean);
+    }
+    return val;
+  }, z.array(z.string().trim().min(1).max(maxItemLen)).max(maxItems));
 
 export const extractedRequirementsSchema = z.object({
-  destination: z.string().trim().max(120).nullable(),
-  travelStartDate: z.string().trim().max(30).nullable(),
-  travelMonth: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/).nullable(),
-  durationDays: z.number().int().positive().max(365).nullable(),
-  adults: z.number().int().min(1).max(50).nullable(),
-  children: z.number().int().min(0).max(50).nullable(),
-  budget: z.number().nonnegative().max(100_000_000).nullable(),
-  currency: z.string().regex(/^[A-Z]{3}$/).nullable(),
-  hotelPreference: z.string().trim().max(120).nullable(),
-  specialRequirements: z.array(z.string().trim().min(1).max(500)).max(20),
+  destination: nullableStringSchema(120),
+  travelStartDate: nullableStringSchema(30),
+  travelMonth: nullableTravelMonthSchema,
+  durationDays: nullableIntSchema(1, 365),
+  adults: nullableIntSchema(1, 50),
+  children: nullableIntSchema(0, 50),
+  budget: nullableBudgetSchema,
+  currency: nullableCurrencySchema,
+  hotelPreference: nullableStringSchema(120),
+  specialRequirements: stringArraySchema(500, 20),
   confidence: z.object({
     destination: confidenceSchema,
     travelStartDate: confidenceSchema,
@@ -25,22 +112,27 @@ export const extractedRequirementsSchema = z.object({
     hotelPreference: confidenceSchema,
     specialRequirements: confidenceSchema,
   }),
-  missingFields: z.array(z.string().trim().min(1).max(80)).max(20),
-  uncertainFields: z.array(z.string().trim().min(1).max(80)).max(20),
+  missingFields: stringArraySchema(80, 20),
+  uncertainFields: stringArraySchema(80, 20),
 });
 
 export const recommendationResponseSchema = z.object({
-  recommendations: z.array(z.object({
-    packageId: z.string().min(1),
-    matchingReasons: z.array(z.string().trim().min(1).max(300)).max(5),
-    uncertainFit: z.array(z.string().trim().min(1).max(300)).max(5),
-  })).max(3),
-  noGoodMatchReason: z.string().trim().max(500).nullable(),
+  recommendations: z.preprocess(
+    (val) => (val == null ? [] : val),
+    z.array(
+      z.object({
+        packageId: z.string().trim().min(1),
+        matchingReasons: stringArraySchema(300, 5),
+        uncertainFit: stringArraySchema(300, 5),
+      })
+    ).max(3)
+  ),
+  noGoodMatchReason: nullableStringSchema(500),
 });
 
 export const aiReplySchema = z.object({
   body: z.string().trim().min(1).max(8000),
-  uncertaintyNotes: z.array(z.string().trim().min(1).max(300)).max(10),
+  uncertaintyNotes: stringArraySchema(300, 10),
 });
 
 export type ExtractedRequirements = z.infer<typeof extractedRequirementsSchema>;

@@ -52,8 +52,8 @@ export default async function PackagePreviewPage({
           </div>
         </div>
       </section>
-      <Link href={`/admin/packages/${id}/edit`} className="inline-flex min-h-12 items-center rounded-full bg-deep-green px-6 text-sm font-medium text-white hover:bg-forest">
-        Back to editor
+      <Link href={`/admin/packages/${id}/edit`} className="inline-flex min-h-12 items-center rounded-full bg-deep-green px-6 text-sm font-medium text-white hover:bg-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold">
+        ← Back to editor
       </Link>
     </div>
   );

@@ -35,7 +35,7 @@ async function main() {
     },
   });
 
-  await prisma.package.upsert({
+  const publishedPackage = await prisma.package.upsert({
     where: { slug: "PKG-KL-07" },
     update: {},
     create: {
@@ -70,8 +70,68 @@ async function main() {
           },
         ],
       },
+      itineraryDays: {
+        create: [
+          {
+            dayNumber: 1,
+            title: "Arrival in Cochin & Transfer to Munnar",
+            description: "Arrive at Cochin airport. Meet our atelier chauffeur and ascend through misty Western Ghats tea plantations to Munnar.",
+          },
+          {
+            dayNumber: 2,
+            title: "Munnar Tea Sanctuary & Eravikulam",
+            description: "Private guided morning trail at Eravikulam National Park in search of Nilgiri Tahr, followed by an afternoon tea tasting at a heritage estate.",
+          },
+          {
+            dayNumber: 3,
+            title: "Spice Valleys of Thekkady",
+            description: "Drive through cardamom hills to Thekkady. Private walking tour of an organic spice farm and sunset boat safari on Lake Periyar.",
+          },
+          {
+            dayNumber: 4,
+            title: "Alleppey Houseboat Embarkation",
+            description: "Board your private handcrafted kettuvallam in Alleppey. Cruise through serene palm-fringed backwaters with regional chef-prepared dining.",
+          },
+          {
+            dayNumber: 5,
+            title: "Vembanad Backwaters & Heritage Resort",
+            description: "Disembark after sunrise backwater cruising. Check into a boutique lakeside sanctuary overlooking Lake Vembanad.",
+          },
+          {
+            dayNumber: 6,
+            title: "Cochin Historic Quarter & Departure",
+            description: "Morning exploration of Fort Kochi spice markets and Chinese fishing nets before chauffeur transfer to Cochin airport.",
+          },
+        ],
+      },
     },
   });
+
+  // Ensure published package has an immutable version snapshot
+  const existingVersion = await prisma.packageVersion.findFirst({
+    where: { packageId: publishedPackage.id },
+  });
+  if (!existingVersion) {
+    const version = await prisma.packageVersion.create({
+      data: {
+        packageId: publishedPackage.id,
+        versionNumber: 1,
+        snapshot: {
+          slug: publishedPackage.slug,
+          title: publishedPackage.title,
+          destination: publishedPackage.destination,
+          durationDays: publishedPackage.durationDays,
+          category: publishedPackage.category,
+          hotelCategory: publishedPackage.hotelCategory,
+          description: publishedPackage.description,
+        },
+      },
+    });
+    await prisma.package.update({
+      where: { id: publishedPackage.id },
+      data: { publishedVersionId: version.id },
+    });
+  }
 
   await prisma.package.upsert({
     where: { slug: "PKG-SI-12" },
@@ -99,6 +159,48 @@ async function main() {
       },
     },
   });
+
+  // Seed demo published blog post linked to Kerala package
+  const existingPost = await prisma.blogPost.findUnique({
+    where: { slug: "sustainable-backwaters-of-alleppey" },
+  });
+  if (!existingPost) {
+    const post = await prisma.blogPost.create({
+      data: {
+        slug: "sustainable-backwaters-of-alleppey",
+        title: "A Quiet Odyssey: The Living Backwaters of Alleppey",
+        excerpt: "Exploring Kerala's tranquil canal ecosystems through slow travel, heritage kettuvallam cruising, and village stewardship.",
+        content: `## The Rhythm of Slow Water\n\nGliding through the palm-fringed canals of Alleppey aboard a handcrafted wooden kettuvallam offers a profound lesson in time and landscape. Long before these vessels accommodated contemplative travellers, they served as the agricultural arteries of the Kuttanad delta.\n\n### Ecological Stewardship\n\nPreserving the delicate equilibrium between local agricultural traditions and mindful hospitality remains at the heart of responsible South India journeys.\n\n- **Solar and Bio-hybrid Vessels**: Modern sustainable houseboats minimize emissions along pristine waterways.\n- **Farm-to-Canal Dining**: Traditional Karimeen and red rice sourced directly from organic village collectives.\n- **Low-Impact Navigation**: Exploring shallow arteries via traditional wooden canoes guided by local rowers.`,
+        category: "Destination Dispatch",
+        tags: ["Kerala", "Backwaters", "Slow Travel", "Alleppey"],
+        seoTitle: "The Living Backwaters of Alleppey | Travelora Journal",
+        seoDescription: "An exploration of Kerala's serene backwater ecosystems, slow travel, and responsible kettuvallam cruising with Travelora.",
+        status: "PUBLISHED",
+        publishedAt: new Date("2026-10-15T09:00:00.000Z"),
+        relatedPackageId: publishedPackage.id,
+      },
+    });
+
+    const postVersion = await prisma.blogPostVersion.create({
+      data: {
+        postId: post.id,
+        versionNumber: 1,
+        snapshot: {
+          title: post.title,
+          slug: post.slug,
+          excerpt: post.excerpt,
+          content: post.content,
+          category: post.category,
+          tags: post.tags,
+        },
+      },
+    });
+
+    await prisma.blogPost.update({
+      where: { id: post.id },
+      data: { publishedVersionId: postVersion.id },
+    });
+  }
 }
 
 main()

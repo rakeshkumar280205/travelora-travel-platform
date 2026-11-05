@@ -16,6 +16,10 @@ export function errorResponse(error: unknown) {
     );
   }
 
+  if (error instanceof SyntaxError) {
+    return badRequestResponse("Request body must be valid JSON.");
+  }
+
   if (
     error &&
     typeof error === "object" &&
@@ -95,6 +99,35 @@ export function badRequestResponse(message: string) {
 export function serviceUnavailableResponse(message: string) {
   return Response.json(
     { error: { code: "SERVICE_UNAVAILABLE", message } },
+    { status: 503 },
+  );
+}
+
+export function rateLimitResponse(retryAfterSeconds?: number) {
+  return Response.json(
+    {
+      error: {
+        code: "RATE_LIMITED",
+        message: "Too many requests. Please try again later.",
+      },
+    },
+    {
+      status: 429,
+      headers: retryAfterSeconds
+        ? { "Retry-After": String(retryAfterSeconds) }
+        : undefined,
+    },
+  );
+}
+
+export function rateLimitUnavailableResponse() {
+  return Response.json(
+    {
+      error: {
+        code: "SERVICE_UNAVAILABLE",
+        message: "Request protection is temporarily unavailable. Please try again later.",
+      },
+    },
     { status: 503 },
   );
 }

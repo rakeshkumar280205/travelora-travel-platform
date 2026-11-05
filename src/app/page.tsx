@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { DestinationCard } from "@/components/travel/destination-card";
@@ -145,12 +146,12 @@ export default function Home() {
                 eyebrow="Curated journeys"
                 title="A beautiful beginning."
               />
-              <a
-                href="#journeys"
-                className="text-sm font-medium text-forest underline decoration-gold underline-offset-8 transition-colors hover:text-gold"
+              <Link
+                href="/packages"
+                className="text-sm font-medium text-forest underline decoration-gold underline-offset-8 transition-colors hover:text-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold rounded"
               >
                 View all journeys
-              </a>
+              </Link>
             </div>
             <div className="mt-12">
               <Suspense fallback={<FeaturedJourneysSkeleton />}>

@@ -47,52 +47,77 @@ export function PackageList({
   }
 
   return (
-    <section className="border border-charcoal/10 bg-white">
+    <section className="border border-charcoal/10 bg-white" aria-labelledby="package-list-heading">
+      <h2 id="package-list-heading" className="sr-only">Package list</h2>
       <div className="flex flex-col gap-4 border-b border-charcoal/10 p-5 lg:flex-row">
-        <label className="relative flex-1">
-          <span className="sr-only">Search packages</span>
-          <Search size={17} className="absolute left-4 top-3.5 text-charcoal/40" />
+        <div className="relative flex-1">
+          <label htmlFor="package-admin-search" className="sr-only">Search packages</label>
+          <Search size={17} className="absolute left-4 top-3.5 text-charcoal/40" aria-hidden="true" />
           <input
+            id="package-admin-search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search title, code or destination"
-            className="w-full border border-charcoal/15 bg-ivory py-3 pl-11 pr-4 text-sm outline-none focus:border-gold"
+            className="w-full border border-charcoal/15 bg-ivory py-3 pl-11 pr-4 text-sm outline-none transition focus:border-forest focus:ring-2 focus:ring-gold/40"
           />
-        </label>
-        <label>
-          <span className="sr-only">Filter by status</span>
-          <select value={status} onChange={(event) => setStatus(event.target.value as typeof status)} className="w-full border border-charcoal/15 bg-ivory px-4 py-3 text-sm outline-none focus:border-gold sm:w-44">
+        </div>
+        <div>
+          <label htmlFor="package-admin-status-filter" className="sr-only">Filter by status</label>
+          <select
+            id="package-admin-status-filter"
+            value={status}
+            onChange={(event) => setStatus(event.target.value as typeof status)}
+            className="w-full border border-charcoal/15 bg-ivory px-4 py-3 text-sm outline-none transition focus:border-forest focus:ring-2 focus:ring-gold/40 sm:w-44"
+          >
             <option value="ALL">All statuses</option>
             <option value="PUBLISHED">Published</option>
             <option value="DRAFT">Draft</option>
           </select>
-        </label>
+        </div>
       </div>
-      {message && <p role="alert" className="border-b border-red-100 bg-red-50 px-5 py-3 text-sm text-red-800">{message}</p>}
+      {message && (
+        <div role="alert" className="border-b border-red-100 bg-red-50 px-5 py-3 text-sm text-red-800">
+          {message}
+        </div>
+      )}
       {filtered.length > 0 ? (
         <div className="divide-y divide-charcoal/10">
           {filtered.map((packageRecord) => (
             <article id={packageRecord.id} key={packageRecord.id} className="flex flex-col gap-4 px-5 py-6 lg:flex-row lg:items-center lg:justify-between">
               <div className="min-w-0">
-                <h2 className="truncate font-medium text-forest">{packageRecord.title}</h2>
+                <h3 className="truncate font-medium text-forest text-base sm:text-lg">{packageRecord.title}</h3>
                 <p className="mt-1 text-xs text-charcoal/50">{packageRecord.slug}</p>
-                <p className="mt-2 text-sm text-charcoal/55">{packageRecord.destination} · {packageRecord.durationDays} days · {packageRecord.hotelCategory}</p>
+                <p className="mt-2 text-sm text-charcoal/60">{packageRecord.destination} · {packageRecord.durationDays} days · {packageRecord.hotelCategory}</p>
               </div>
-              <div className="flex flex-wrap items-center gap-4">
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                 <span className={`rounded-full px-3 py-1 text-[10px] font-medium uppercase tracking-[0.12em] ${packageRecord.status === "PUBLISHED" ? "bg-forest/10 text-forest" : "bg-gold/20 text-deep-green"}`}>
                   {packageRecord.status.toLowerCase()}
                 </span>
-                <span className="text-xs text-charcoal/45">Updated {formatDate(packageRecord.updatedAt)}</span>
+                <span className="text-xs text-charcoal/50">Updated {formatDate(packageRecord.updatedAt)}</span>
                 {canMutate && (
                   <>
-                    <Link href={`/admin/packages/${packageRecord.id}/edit`} className="inline-flex items-center gap-2 text-sm font-medium text-forest hover:text-gold">
-                      <Pencil size={15} /> Edit
+                    <Link
+                      href={`/admin/packages/${packageRecord.id}/edit`}
+                      aria-label={`Edit ${packageRecord.title}`}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-forest hover:text-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold rounded px-1.5 py-1"
+                    >
+                      <Pencil size={15} aria-hidden="true" /> Edit
                     </Link>
-                    <Link href={`/admin/packages/${packageRecord.id}/preview`} className="text-sm font-medium text-forest hover:text-gold">
+                    <Link
+                      href={`/admin/packages/${packageRecord.id}/preview`}
+                      aria-label={`Preview ${packageRecord.title}`}
+                      className="text-sm font-medium text-forest hover:text-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold rounded px-1.5 py-1"
+                    >
                       Preview
                     </Link>
-                    <button type="button" disabled={duplicating === packageRecord.id} onClick={() => duplicatePackage(packageRecord.id)} className="inline-flex items-center gap-2 text-sm font-medium text-forest hover:text-gold disabled:opacity-50">
-                      <Copy size={15} /> {duplicating === packageRecord.id ? "Copying..." : "Duplicate"}
+                    <button
+                      type="button"
+                      disabled={duplicating === packageRecord.id}
+                      onClick={() => duplicatePackage(packageRecord.id)}
+                      aria-label={`Duplicate ${packageRecord.title}`}
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-forest hover:text-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold rounded px-1.5 py-1 disabled:opacity-50 cursor-pointer"
+                    >
+                      <Copy size={15} aria-hidden="true" /> {duplicating === packageRecord.id ? "Copying..." : "Duplicate"}
                     </button>
                   </>
                 )}
@@ -102,8 +127,8 @@ export function PackageList({
         </div>
       ) : (
         <div className="px-6 py-14 text-center">
-          <h2 className="font-display text-2xl text-forest">{packages.length === 0 ? "No packages yet" : "No matching packages"}</h2>
-          <p className="mt-3 text-sm text-charcoal/55">{packages.length === 0 ? "Create your first journey to see it here." : "Try a different search or status filter."}</p>
+          <p className="font-display text-2xl text-forest">{packages.length === 0 ? "No packages yet" : "No matching packages"}</p>
+          <p className="mt-3 text-sm text-charcoal/60">{packages.length === 0 ? "Create your first journey to see it here." : "Try a different search or status filter."}</p>
         </div>
       )}
     </section>

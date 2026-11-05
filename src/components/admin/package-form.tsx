@@ -40,6 +40,20 @@ export function PackageForm({ initial, packageId }: { initial: PackageFormData; 
     setSaving(false);
   }
 
+  function deleteDay(index: number) {
+    const day = form.itineraryDays[index];
+    const label = day?.title ? `"${day.title}"` : `Day ${index + 1}`;
+    if (!window.confirm(`Delete ${label}?`)) return;
+    update("itineraryDays", form.itineraryDays.filter((_, itemIndex) => itemIndex !== index));
+  }
+
+  function deleteSeason(index: number) {
+    const price = form.seasonalPrices[index];
+    const label = price?.seasonName ? `"${price.seasonName}"` : `Season ${index + 1}`;
+    if (!window.confirm(`Delete ${label}?`)) return;
+    update("seasonalPrices", form.seasonalPrices.filter((_, itemIndex) => itemIndex !== index));
+  }
+
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaving(true);
@@ -62,7 +76,7 @@ export function PackageForm({ initial, packageId }: { initial: PackageFormData; 
 
   return (
     <form onSubmit={submit} className="space-y-8">
-      {error && <div role="alert" className="border border-red-200 bg-red-50 px-5 py-4 text-sm leading-6 text-red-800">{error}</div>}
+      {error && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-5 py-4 text-sm leading-6 text-red-800">{error}</div>}
       <section className="border border-charcoal/10 bg-white p-6 sm:p-8">
         <h2 className="font-display text-2xl text-forest">Package details</h2>
         <div className="mt-6 grid gap-5 md:grid-cols-2">
@@ -73,33 +87,120 @@ export function PackageForm({ initial, packageId }: { initial: PackageFormData; 
           <Field label="Category" value={form.category} onChange={(value) => update("category", value)} required />
           <Field label="Hotel category" value={form.hotelCategory} onChange={(value) => update("hotelCategory", value)} required />
           <div className="block text-sm font-medium text-forest">Status<div className="mt-2 border border-charcoal/20 bg-ivory px-4 py-3 font-normal text-charcoal/60">{form.status === "PUBLISHED" ? "Published draft" : "Draft"}</div></div>
-          <label className="block text-sm font-medium text-forest md:col-span-2">Description<textarea required value={form.description} onChange={(event) => update("description", event.target.value)} rows={5} className="mt-2 w-full border border-charcoal/20 bg-ivory px-4 py-3 font-normal outline-none focus:border-gold" /></label>
+          <label className="block text-sm font-medium text-forest md:col-span-2">Description<textarea required value={form.description} onChange={(event) => update("description", event.target.value)} rows={5} className="mt-2 w-full border border-charcoal/20 bg-ivory px-4 py-3 font-normal outline-none transition focus:border-forest focus:ring-2 focus:ring-gold/40" /></label>
         </div>
       </section>
       <EditorSection title="Itinerary">
         <div className="space-y-4">
-          {form.itineraryDays.map((day, index) => <div key={index} className="border border-charcoal/10 p-4"><div className="flex items-center justify-between"><p className="text-xs uppercase tracking-[0.15em] text-gold">Day {index + 1}</p><button type="button" onClick={() => update("itineraryDays", form.itineraryDays.filter((_, itemIndex) => itemIndex !== index))} className="text-xs text-red-700 hover:underline">Delete</button></div><div className="mt-4 grid gap-4 md:grid-cols-2"><Field label="Day title" value={day.title} onChange={(value) => update("itineraryDays", replaceAt(form.itineraryDays, index, { ...day, title: value }))} required /><label className="block text-sm font-medium text-forest md:col-span-2">Description<textarea required value={day.description} onChange={(event) => update("itineraryDays", replaceAt(form.itineraryDays, index, { ...day, description: event.target.value }))} rows={3} className="mt-2 w-full border border-charcoal/20 bg-ivory px-4 py-3 font-normal outline-none focus:border-gold" /></label></div></div>)}
+          {form.itineraryDays.map((day, index) => (
+            <div key={index} className="border border-charcoal/10 p-4 sm:p-5">
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-[0.15em] text-gold">Day {index + 1}</p>
+                <button
+                  type="button"
+                  onClick={() => deleteDay(index)}
+                  aria-label={`Delete Day ${index + 1}`}
+                  className="rounded px-2 py-1 text-xs text-red-700 hover:bg-red-50 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-700 cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <Field label="Day title" value={day.title} onChange={(value) => update("itineraryDays", replaceAt(form.itineraryDays, index, { ...day, title: value }))} required />
+                <label className="block text-sm font-medium text-forest md:col-span-2">Description<textarea required value={day.description} onChange={(event) => update("itineraryDays", replaceAt(form.itineraryDays, index, { ...day, description: event.target.value }))} rows={3} className="mt-2 w-full border border-charcoal/20 bg-ivory px-4 py-3 font-normal outline-none transition focus:border-forest focus:ring-2 focus:ring-gold/40" /></label>
+              </div>
+            </div>
+          ))}
         </div>
-        <button type="button" onClick={() => update("itineraryDays", [...form.itineraryDays, blankDay(form.itineraryDays.length + 1)])} className="mt-5 text-sm font-medium text-forest hover:text-gold">+ Add itinerary day</button>
+        <button
+          type="button"
+          onClick={() => update("itineraryDays", [...form.itineraryDays, blankDay(form.itineraryDays.length + 1)])}
+          className="mt-5 text-sm font-medium text-forest hover:text-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold rounded cursor-pointer"
+        >
+          + Add itinerary day
+        </button>
       </EditorSection>
       <EditorSection title="Seasonal pricing">
         <div className="space-y-4">
-          {form.seasonalPrices.map((price, index) => <div key={index} className="border border-charcoal/10 p-4"><div className="flex items-center justify-between"><p className="text-xs uppercase tracking-[0.15em] text-gold">Season {index + 1}</p><button type="button" onClick={() => update("seasonalPrices", form.seasonalPrices.filter((_, itemIndex) => itemIndex !== index))} className="text-xs text-red-700 hover:underline">Delete</button></div><div className="mt-4 grid gap-4 md:grid-cols-2"><Field label="Season name" value={price.seasonName} onChange={(value) => update("seasonalPrices", replaceAt(form.seasonalPrices, index, { ...price, seasonName: value }))} required /><Field label="Currency" value={price.currency} maxLength={3} onChange={(value) => update("seasonalPrices", replaceAt(form.seasonalPrices, index, { ...price, currency: value.toUpperCase() }))} required /><Field label="Start date" type="date" value={price.startDate} onChange={(value) => update("seasonalPrices", replaceAt(form.seasonalPrices, index, { ...price, startDate: value }))} required /><Field label="End date" type="date" value={price.endDate} onChange={(value) => update("seasonalPrices", replaceAt(form.seasonalPrices, index, { ...price, endDate: value }))} required /><Field label="Amount" type="number" value={price.amount} onChange={(value) => update("seasonalPrices", replaceAt(form.seasonalPrices, index, { ...price, amount: value }))} required /><Field label="Pricing basis" value={price.pricingBasis} onChange={(value) => update("seasonalPrices", replaceAt(form.seasonalPrices, index, { ...price, pricingBasis: value }))} required /></div></div>)}
+          {form.seasonalPrices.map((price, index) => (
+            <div key={index} className="border border-charcoal/10 p-4 sm:p-5">
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-[0.15em] text-gold">Season {index + 1}</p>
+                <button
+                  type="button"
+                  onClick={() => deleteSeason(index)}
+                  aria-label={`Delete Season ${index + 1}`}
+                  className="rounded px-2 py-1 text-xs text-red-700 hover:bg-red-50 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-red-700 cursor-pointer"
+                >
+                  Delete
+                </button>
+              </div>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <Field label="Season name" value={price.seasonName} onChange={(value) => update("seasonalPrices", replaceAt(form.seasonalPrices, index, { ...price, seasonName: value }))} required />
+                <Field label="Currency" value={price.currency} maxLength={3} onChange={(value) => update("seasonalPrices", replaceAt(form.seasonalPrices, index, { ...price, currency: value.toUpperCase() }))} required />
+                <Field label="Start date" type="date" value={price.startDate} onChange={(value) => update("seasonalPrices", replaceAt(form.seasonalPrices, index, { ...price, startDate: value }))} required />
+                <Field label="End date" type="date" value={price.endDate} onChange={(value) => update("seasonalPrices", replaceAt(form.seasonalPrices, index, { ...price, endDate: value }))} required />
+                <Field label="Amount" type="number" value={price.amount} onChange={(value) => update("seasonalPrices", replaceAt(form.seasonalPrices, index, { ...price, amount: value }))} required />
+                <Field label="Pricing basis" value={price.pricingBasis} onChange={(value) => update("seasonalPrices", replaceAt(form.seasonalPrices, index, { ...price, pricingBasis: value }))} required />
+              </div>
+            </div>
+          ))}
         </div>
-        <button type="button" onClick={() => update("seasonalPrices", [...form.seasonalPrices, blankPrice()])} className="mt-5 text-sm font-medium text-forest hover:text-gold">+ Add seasonal price</button>
-        <p className="mt-5 text-xs leading-5 text-charcoal/50">Use explicit pricing basis text. Do not add child pricing or unconfirmed availability.</p>
+        <button
+          type="button"
+          onClick={() => update("seasonalPrices", [...form.seasonalPrices, blankPrice()])}
+          className="mt-5 text-sm font-medium text-forest hover:text-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold rounded cursor-pointer"
+        >
+          + Add seasonal price
+        </button>
+        <p className="mt-5 text-xs leading-5 text-charcoal/55">Use explicit pricing basis text. Do not add child pricing or unconfirmed availability.</p>
       </EditorSection>
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><Link href="/admin/packages" className="inline-flex min-h-12 items-center justify-center rounded-full border border-charcoal/20 px-6 text-sm font-medium text-forest hover:border-forest">Cancel</Link>{packageId && <><Link href={`/admin/packages/${packageId}/preview`} className="inline-flex min-h-12 items-center justify-center rounded-full border border-charcoal/20 px-6 text-sm font-medium text-forest hover:border-forest">Preview</Link><button type="button" onClick={publish} disabled={saving} className="inline-flex min-h-12 items-center justify-center rounded-full border border-forest px-6 text-sm font-medium text-forest hover:bg-forest hover:text-white disabled:opacity-60">Publish update</button></>}<button type="submit" disabled={saving} className="inline-flex min-h-12 items-center justify-center rounded-full bg-gold px-6 text-sm font-medium text-deep-green hover:bg-forest hover:text-white disabled:opacity-60">{saving ? "Saving..." : packageId ? "Save changes" : "Create draft package"}</button></div>
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <Link href="/admin/packages" className="inline-flex min-h-12 items-center justify-center rounded-full border border-charcoal/20 px-6 text-sm font-medium text-forest hover:border-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold">
+          Cancel
+        </Link>
+        {packageId && (
+          <>
+            <Link href={`/admin/packages/${packageId}/preview`} className="inline-flex min-h-12 items-center justify-center rounded-full border border-charcoal/20 px-6 text-sm font-medium text-forest hover:border-forest focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold">
+              Preview
+            </Link>
+            <button type="button" onClick={publish} disabled={saving} className="inline-flex min-h-12 items-center justify-center rounded-full border border-forest px-6 text-sm font-medium text-forest hover:bg-forest hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold disabled:opacity-60 cursor-pointer">
+              Publish update
+            </button>
+          </>
+        )}
+        <button type="submit" disabled={saving} className="inline-flex min-h-12 items-center justify-center rounded-full bg-gold px-6 text-sm font-medium text-deep-green hover:bg-forest hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold disabled:opacity-60 cursor-pointer">
+          {saving ? "Saving..." : packageId ? "Save changes" : "Create draft package"}
+        </button>
+      </div>
     </form>
   );
 }
 
 function Field({ label, value, onChange, type = "text", required = false, maxLength }: { label: string; value: string; onChange: (value: string) => void; type?: string; required?: boolean; maxLength?: number }) {
-  return <label className="block text-sm font-medium text-forest">{label}<input type={type} required={required} maxLength={maxLength} value={value} onChange={(event) => onChange(event.target.value)} className="mt-2 w-full border border-charcoal/20 bg-ivory px-4 py-3 font-normal outline-none focus:border-gold" /></label>;
+  return (
+    <label className="block text-sm font-medium text-forest">
+      {label}
+      <input
+        type={type}
+        required={required}
+        aria-required={required ? "true" : undefined}
+        maxLength={maxLength}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="mt-2 w-full border border-charcoal/20 bg-ivory px-4 py-3 font-normal outline-none transition focus:border-forest focus:ring-2 focus:ring-gold/40"
+      />
+    </label>
+  );
 }
 
 function EditorSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return <section className="border border-charcoal/10 bg-white p-6 sm:p-8"><h2 className="font-display text-2xl text-forest">{title}</h2><div className="mt-6">{children}</div></section>;
+  return (
+    <section className="border border-charcoal/10 bg-white p-6 sm:p-8">
+      <h2 className="font-display text-2xl text-forest">{title}</h2>
+      <div className="mt-6">{children}</div>
+    </section>
+  );
 }
 
 function replaceAt<T>(items: T[], index: number, value: T) {

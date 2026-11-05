@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 enum UserRole {
@@ -47,6 +48,8 @@ model User {
   enquiryNotes     EnquiryNote[] @relation("EnquiryNoteAuthors")
   enquiryReplies   EnquiryReply[] @relation("EnquiryReplyAuthors")
   enquiryActivities EnquiryActivity[] @relation("EnquiryActivityActors")
+  blogPosts        BlogPost[] @relation("BlogPostAuthors")
+  quotes           Quote[]    @relation("QuoteCreators")
 }
 
 model Package {
@@ -67,6 +70,8 @@ model Package {
   versions           PackageVersion[] @relation("PackageVersions")
   publishedVersion   PackageVersion?  @relation("PublishedPackageVersion", fields: [publishedVersionId], references: [id], onDelete: SetNull)
   enquiries          Enquiry[]
+  blogPosts          BlogPost[]       @relation("BlogPostRelatedPackage")
+  quotes             Quote[]          @relation("PackageQuotes")
 }
 
 model Enquiry {
@@ -96,6 +101,7 @@ model Enquiry {
   notes               EnquiryNote[]
   replies             EnquiryReply[]
   activities          EnquiryActivity[]
+  quotes              Quote[]       @relation("EnquiryQuotes")
 
   @@index([status, createdAt])
   @@index([packageId])
@@ -157,6 +163,7 @@ model SeasonalPrice {
   currency     String   @default("INR")
   pricingBasis String
   package      Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  quotes       Quote[]  @relation("SeasonalPriceQuotes")
 
   @@index([packageId])
 }
@@ -186,4 +193,117 @@ model PackageVersion {
 
   @@unique([packageId, versionNumber])
   @@index([packageId, createdAt])
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+model BlogPost {
+  id                 String            @id @default(cuid())
+  slug               String            @unique
+  title              String
+  excerpt            String
+  content            String            @db.Text
+  featuredImage      String?
+  imageAlt           String?
+  category           String
+  tags               String[]          @default([])
+  seoTitle           String?
+  seoDescription     String?
+  status             PostStatus        @default(DRAFT)
+  publishedAt        DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  authorId           String?
+  author             User?             @relation("BlogPostAuthors", fields: [authorId], references: [id], onDelete: SetNull)
+
+  relatedPackageId   String?
+  relatedPackage     Package?          @relation("BlogPostRelatedPackage", fields: [relatedPackageId], references: [id], onDelete: SetNull)
+
+  publishedVersionId String?           @unique
+  versions           BlogPostVersion[] @relation("BlogPostVersions")
+  publishedVersion   BlogPostVersion?  @relation("PublishedBlogPostVersion", fields: [publishedVersionId], references: [id], onDelete: SetNull)
+
+  @@index([status, publishedAt])
+  @@index([category, status])
+  @@index([slug])
+}
+
+model BlogPostVersion {
+  id            String     @id @default(cuid())
+  postId        String
+  versionNumber Int
+  snapshot      Json
+  createdBy     String?
+  createdAt     DateTime   @default(now())
+
+  post          BlogPost   @relation("BlogPostVersions", fields: [postId], references: [id], onDelete: Cascade)
+  publishedFor  BlogPost?  @relation("PublishedBlogPostVersion")
+
+  @@unique([postId, versionNumber])
+  @@index([postId, createdAt])
+}
+
+enum QuoteStatus {
+  DRAFT
+  GENERATED
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+model Quote {
+  id              String         @id @default(cuid())
+  quoteNumber     String         @unique
+  status          QuoteStatus    @default(DRAFT)
+
+  enquiryId       String?
+  enquiry         Enquiry?       @relation("EnquiryQuotes", fields: [enquiryId], references: [id], onDelete: SetNull)
+
+  packageId       String
+  package         Package        @relation("PackageQuotes", fields: [packageId], references: [id], onDelete: Restrict)
+
+  seasonalPriceId String?
+  seasonalPrice   SeasonalPrice? @relation("SeasonalPriceQuotes", fields: [seasonalPriceId], references: [id], onDelete: SetNull)
+
+  createdById     String?
+  createdBy       User?          @relation("QuoteCreators", fields: [createdById], references: [id], onDelete: SetNull)
+
+  customerName    String
+  customerEmail   String
+  customerPhone   String?
+
+  startDate       DateTime?
+  endDate         DateTime?
+  durationDays    Int
+  adults          Int            @default(1)
+  children        Int            @default(0)
+
+  basePriceAmount Decimal        @db.Decimal(12, 2)
+  currency        String         @default("INR")
+  pricingBasis    String
+  calculatedTotal Decimal        @db.Decimal(12, 2)
+  notes           String?        @db.Text
+
+  snapshot        Json?
+
+  publicToken     String?        @unique
+  tokenExpiresAt  DateTime?
+  isTokenRevoked  Boolean        @default(false)
+
+  sentAt          DateTime?
+  acceptedAt      DateTime?
+  rejectedAt      DateTime?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([status, createdAt])
+  @@index([enquiryId])
+  @@index([packageId])
+  @@index([publicToken])
 }

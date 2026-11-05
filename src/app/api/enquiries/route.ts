@@ -5,8 +5,15 @@ import {
   badRequestResponse,
   errorResponse,
   notFoundResponse,
+  rateLimitResponse,
+  rateLimitUnavailableResponse,
 } from "@/server/services/api-response";
 import { createPublicEnquiry } from "@/server/services/enquiry-service";
+import {
+  enforceRateLimit,
+  getPublicEnquiryRateLimitKey,
+  RateLimitUnavailableError,
+} from "@/server/services/rate-limit";
 
 const ACKNOWLEDGEMENT =
   "Thank you for contacting Travelora! We've received your travel enquiry. Our team will review your requirements and get back to you.";
@@ -14,6 +21,11 @@ const ACKNOWLEDGEMENT =
 export async function POST(request: Request) {
   try {
     await connection();
+    const rateLimit = await enforceRateLimit(
+      "public-enquiry",
+      getPublicEnquiryRateLimitKey(request),
+    );
+    if (!rateLimit.allowed) return rateLimitResponse(rateLimit.retryAfterSeconds);
     const bodyText = await request.text();
     if (bodyText.length > 20_000) {
       return badRequestResponse("Request is too large.");
@@ -39,6 +51,9 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof Error && error.message === "PACKAGE_NOT_FOUND") {
       return notFoundResponse();
+    }
+    if (error instanceof RateLimitUnavailableError) {
+      return rateLimitUnavailableResponse();
     }
     return errorResponse(error);
   }

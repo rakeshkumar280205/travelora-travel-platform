@@ -92,13 +92,29 @@ export function EnquiryDetail({ enquiry: initial, consultants, canAssign, canUse
 
   return (
     <div className="space-y-8">
-      <Link href="/admin/enquiries" className="text-sm text-forest hover:text-gold">← Back to enquiries</Link>
+      <Link href="/admin/enquiries" className="inline-flex items-center text-sm text-forest hover:text-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold rounded px-1">
+        ← Back to enquiries
+      </Link>
       <header className="flex flex-col gap-5 border-b border-charcoal/10 pb-8 sm:flex-row sm:items-end sm:justify-between">
-        <div><p className="text-xs uppercase tracking-[0.24em] text-gold">Enquiry detail</p><h1 className="font-display mt-3 text-4xl text-forest sm:text-5xl">{enquiry.customerName}</h1><p className="mt-3 text-sm text-charcoal/60">{enquiry.email} · {enquiry.destination}</p></div>
-        <span className="rounded-full bg-gold/20 px-4 py-2 text-xs font-medium uppercase tracking-[0.14em] text-deep-green">{enquiry.status.replaceAll("_", " ")}</span>
+        <div>
+          <p className="text-xs uppercase tracking-[0.24em] text-gold">Enquiry detail</p>
+          <h1 className="font-display mt-3 text-4xl text-forest sm:text-5xl">{enquiry.customerName}</h1>
+          <p className="mt-3 text-sm text-charcoal/60">{enquiry.email} · {enquiry.destination}</p>
+        </div>
+        <span className="rounded-full bg-gold/20 px-4 py-2 text-xs font-medium uppercase tracking-[0.14em] text-deep-green w-fit">
+          {enquiry.status.replaceAll("_", " ")}
+        </span>
       </header>
-      {notice && <p role="status" className="border border-forest/20 bg-forest/5 px-4 py-3 text-sm text-forest">{notice}</p>}
-      {error && <p role="alert" className="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+      {notice && (
+        <div role="status" aria-live="polite" className="rounded-lg border border-forest/20 bg-forest/5 px-4 py-3 text-sm text-forest">
+          {notice}
+        </div>
+      )}
+      {error && (
+        <div role="alert" aria-live="assertive" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {error}
+        </div>
+      )}
       {canUseAi && <Panel title="AI assistant">
         <p className="text-xs leading-5 text-charcoal/55">AI suggestions are advisory. Review every field before saving or using a draft.</p>
         <div className="mt-4 flex flex-wrap gap-3">
@@ -135,7 +151,7 @@ export function EnquiryDetail({ enquiry: initial, consultants, canAssign, canUse
           <Panel title="Reply drafts">{enquiry.replies.length > 0 && <div className="mb-5 space-y-4">{enquiry.replies.map((reply) => <div key={reply.id} className="border-l-2 border-forest pl-4"><p className="whitespace-pre-wrap text-sm leading-6 text-charcoal/70">{reply.body}</p><p className="mt-2 text-xs text-charcoal/45">{reply.author.name} · {formatDate(reply.updatedAt)} · Draft only</p></div>)}</div>}<form onSubmit={(event) => addRecord(event, "reply")} className="grid gap-3"><label htmlFor="reply-body" className="text-sm font-medium text-forest">Save a response draft</label><textarea id="reply-body" name="body" required maxLength={8000} rows={5} className="rounded-lg border border-charcoal/15 p-3 text-sm outline-none focus:border-forest" /><p className="text-xs text-charcoal/45">Saving does not send email or WhatsApp messages.</p><button className="w-fit rounded-full bg-deep-green px-5 py-2.5 text-xs font-medium text-white hover:bg-forest">Save reply draft</button></form></Panel>
         </div>
         <aside className="space-y-8">
-          <Panel title="Manage"><div className="grid gap-4"><label className="grid gap-2 text-sm font-medium text-forest">Status<select value={enquiry.status} onChange={(event) => void update({ status: event.target.value })} className="min-h-11 rounded-lg border border-charcoal/15 bg-white px-3 text-sm">{statuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}</select></label>{canAssign && <label className="grid gap-2 text-sm font-medium text-forest">Assigned consultant<select value={enquiry.assignedConsultantId ?? ""} onChange={(event) => void update({ assignedConsultantId: event.target.value || null })} className="min-h-11 rounded-lg border border-charcoal/15 bg-white px-3 text-sm"><option value="">Unassigned</option>{consultants.map((consultant) => <option key={consultant.id} value={consultant.id}>{consultant.name}</option>)}</select></label>}</div></Panel>
+          <Panel title="Manage"><div className="grid gap-4"><label className="grid gap-2 text-sm font-medium text-forest">Status<select value={enquiry.status} onChange={(event) => void update({ status: event.target.value })} className="min-h-11 rounded-lg border border-charcoal/15 bg-white px-3 text-sm">{statuses.map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}</select></label>{canAssign && <label className="grid gap-2 text-sm font-medium text-forest">Assigned consultant<select value={enquiry.assignedConsultantId ?? ""} onChange={(event) => void update({ assignedConsultantId: event.target.value || null })} className="min-h-11 rounded-lg border border-charcoal/15 bg-white px-3 text-sm"><option value="">Unassigned</option>{consultants.map((consultant) => <option key={consultant.id} value={consultant.id}>{consultant.name}</option>)}</select></label>}<div className="pt-2 border-t border-charcoal/10"><Link href={`/admin/quotes/new?enquiryId=${enquiry.id}`} className="inline-flex min-h-10 w-full items-center justify-center rounded-lg bg-gold px-4 text-xs font-medium text-deep-green hover:bg-forest hover:text-white transition">Build formal quote</Link></div></div></Panel>
           <Panel title="Customer"><dl className="space-y-4 text-sm"><Info label="Email" value={enquiry.email} /><Info label="Phone" value={enquiry.phone ?? "Not provided"} /><Info label="Received" value={formatDate(enquiry.createdAt)} /></dl></Panel>
           <Panel title="Activity"><div className="space-y-4">{enquiry.activities.length === 0 ? <p className="text-sm text-charcoal/55">No activity recorded.</p> : enquiry.activities.map((activity) => <div key={activity.id} className="border-l border-charcoal/15 pl-4"><p className="text-sm text-forest">{activity.type.replaceAll("_", " ").toLowerCase()}</p><p className="mt-1 text-xs text-charcoal/45">{activity.actor?.name ?? "Public visitor"} · {formatDate(activity.createdAt)}</p></div>)}</div></Panel>
         </aside>
@@ -146,6 +162,6 @@ export function EnquiryDetail({ enquiry: initial, consultants, canAssign, canUse
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) { return <section className="border border-charcoal/10 bg-white p-6"><h2 className="font-display text-2xl text-forest">{title}</h2><div className="mt-5">{children}</div></section>; }
 function Info({ label, value }: { label: string; value: string }) { return <div><dt className="text-xs uppercase tracking-[0.12em] text-charcoal/45">{label}</dt><dd className="mt-1 text-forest">{value}</dd></div>; }
-function AiButton({ busy, onClick, children }: { busy: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" disabled={busy} onClick={onClick} className="rounded-full border border-forest/20 px-4 py-2.5 text-xs font-medium text-forest hover:border-gold disabled:opacity-50">{busy ? "Working..." : children}</button>; }
+function AiButton({ busy, onClick, children }: { busy: boolean; onClick: () => void; children: React.ReactNode }) { return <button type="button" disabled={busy} onClick={onClick} className="rounded-full border border-forest/20 px-4 py-2.5 text-xs font-medium text-forest hover:border-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold disabled:opacity-50 cursor-pointer">{busy ? "Working..." : children}</button>; }
 function SuggestionInput({ label, name, type = "text", value, confidence }: { label: string; name: string; type?: string; value: string; confidence: string }) { return <label className="grid gap-1 text-xs font-medium text-forest">{label} <span className="font-normal text-charcoal/45">Confidence: {confidence}</span><input name={name} type={type} defaultValue={value} className="min-h-10 rounded-lg border border-charcoal/15 px-3 text-sm font-normal text-charcoal" /></label>; }
 function formatDate(value: string) { return new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(value)); }

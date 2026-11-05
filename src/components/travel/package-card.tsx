@@ -29,14 +29,20 @@ export function PackageCard({
         </span>
       </div>
       <h3 className="font-display mt-8 max-w-sm text-3xl leading-tight text-forest">
-        {title}
+        <Link
+          href={`/packages/${slug}`}
+          className="rounded transition-colors hover:text-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
+        >
+          {title}
+        </Link>
       </h3>
       <p className="mt-4 line-clamp-3 text-sm leading-6 text-charcoal/60">{description}</p>
       <div className="mt-8 flex items-center justify-between border-t border-charcoal/10 pt-4 text-xs text-charcoal/55">
         <span>{hotelCategory} stays</span>
         <Link
           href={`/packages/${slug}`}
-          className="inline-flex items-center gap-2 font-medium text-forest transition-colors hover:text-gold"
+          aria-label={`View journey: ${title}`}
+          className="inline-flex items-center gap-2 font-medium text-forest transition-colors hover:text-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold rounded"
         >
           View journey
           <ArrowUpRight size={15} strokeWidth={1.5} aria-hidden="true" />

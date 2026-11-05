@@ -40,6 +40,18 @@ const confidenceFields = {
     hotelPreference: { type: "STRING", enum: ["high", "medium", "low", "unknown"] },
     specialRequirements: { type: "STRING", enum: ["high", "medium", "low", "unknown"] },
   },
+  required: [
+    "destination",
+    "travelStartDate",
+    "travelMonth",
+    "durationDays",
+    "adults",
+    "children",
+    "budget",
+    "currency",
+    "hotelPreference",
+    "specialRequirements",
+  ],
 };
 
 const transitions: Record<EnquiryStatus, EnquiryStatus[]> = {
@@ -168,8 +180,28 @@ export async function extractEnquiryRequirements(
 ) {
   const enquiry = await findEnquiryById(id);
   assertAiAccess(enquiry, actorId, actorRole);
+
+  const contextDetails = [
+    enquiry!.destination ? `Selected destination: ${enquiry!.destination}` : null,
+    enquiry!.travelMonth ? `Selected travel month: ${enquiry!.travelMonth}` : null,
+    enquiry!.startDate ? `Selected start date: ${enquiry!.startDate.toISOString().slice(0, 10)}` : null,
+    enquiry!.durationDays ? `Selected duration: ${enquiry!.durationDays} days` : null,
+    enquiry!.adults ? `Adults: ${enquiry!.adults}` : null,
+    enquiry!.children !== null && enquiry!.children !== undefined ? `Children: ${enquiry!.children}` : null,
+    enquiry!.budget ? `Budget: ${enquiry!.currency ?? ""} ${enquiry!.budget}` : null,
+  ].filter(Boolean).join(", ");
+
   const result = await generateStructuredJson(
-    `Extract travel requirements from this customer message. Return null for unknown values. Never infer children's ages or pricing. Preserve uncertainty in confidence and uncertainFields. Customer message: ${enquiry!.message}`,
+    `Extract travel requirements from this customer enquiry into structured JSON.
+${contextDetails ? `Enquiry submission context: ${contextDetails}\n` : ""}Customer message: ${enquiry!.message}
+
+Rules:
+1. Return every required field. Use null for unknown nullable values, including travelStartDate, travelMonth, durationDays, children, budget, currency, and hotelPreference.
+2. Never invent missing travel details, children's ages, pricing, availability, or an exact travel date.
+3. Convert a named month to YYYY-MM only when the travel year is explicitly known from the message or trusted context. If the year is not known, return travelMonth as null and include "travelMonth" in uncertainFields.
+4. For an uncertain duration range such as 5 to 6 nights, do not invent or fabricate an exact duration; return durationDays as null (or an estimated integer) and record the duration range (e.g., "5 to 6 nights") in uncertainFields; never return a text string or range in durationDays.
+5. If the budget is explicitly denominated in Indian rupees, return currency as INR. Otherwise return a three-letter uppercase currency code only when supported, or null.
+6. Every confidence property is required and must be high, medium, low, or unknown. Preserve uncertainty in confidence, missingFields, and uncertainFields.`,
     {
       type: "OBJECT",
       properties: {
@@ -187,7 +219,21 @@ export async function extractEnquiryRequirements(
         missingFields: { type: "ARRAY", items: { type: "STRING" } },
         uncertainFields: { type: "ARRAY", items: { type: "STRING" } },
       },
-      required: ["destination", "travelStartDate", "travelMonth", "durationDays", "adults", "children", "budget", "currency", "hotelPreference", "specialRequirements", "confidence", "missingFields", "uncertainFields"],
+      required: [
+        "destination",
+        "travelStartDate",
+        "travelMonth",
+        "durationDays",
+        "adults",
+        "children",
+        "budget",
+        "currency",
+        "hotelPreference",
+        "specialRequirements",
+        "confidence",
+        "missingFields",
+        "uncertainFields",
+      ],
     },
     (value) => extractedRequirementsSchema.parse(value),
   );
@@ -202,6 +248,14 @@ export async function recommendPackagesForEnquiry(
   const enquiry = await findEnquiryById(id);
   assertAiAccess(enquiry, actorId, actorRole);
   const packages = await listPublishedPackages();
+
+  if (packages.length === 0) {
+    return {
+      recommendations: [],
+      noGoodMatchReason: "No published packages are currently available to recommend.",
+    };
+  }
+
   const result = await generateStructuredJson(
     `Select up to three matching package IDs from this published package list. Do not invent IDs, prices, availability, inclusions, or GST claims. Explain fit and uncertainty. Enquiry: ${JSON.stringify({
       destination: enquiry!.destination,

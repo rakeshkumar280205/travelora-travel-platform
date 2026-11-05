@@ -4,6 +4,8 @@ import {
   errorResponse,
   forbiddenResponse,
   notFoundResponse,
+  rateLimitResponse,
+  rateLimitUnavailableResponse,
   serviceUnavailableResponse,
   unauthorizedResponse,
 } from "@/server/services/api-response";
@@ -12,6 +14,11 @@ import {
   isGeminiServiceError,
 } from "@/server/services/enquiry-admin-service";
 import { getEnquiryStaffAccess } from "@/server/services/enquiry-access";
+import {
+  enforceRateLimit,
+  getAiRateLimitKey,
+  RateLimitUnavailableError,
+} from "@/server/services/rate-limit";
 
 export async function POST(
   _request: Request,
@@ -22,6 +29,11 @@ export async function POST(
     const access = await getEnquiryStaffAccess();
     if (!access.session) return unauthorizedResponse();
     if (access.role === "FORBIDDEN") return forbiddenResponse();
+    const rateLimit = await enforceRateLimit(
+      "ai",
+      getAiRateLimitKey(access.session.user.id),
+    );
+    if (!rateLimit.allowed) return rateLimitResponse(rateLimit.retryAfterSeconds);
     const { id } = await context.params;
     return Response.json({
       data: await createAiReplyDraft(id, access.session.user.id, access.role),
@@ -32,6 +44,7 @@ export async function POST(
     if (isGeminiServiceError(error)) {
       return serviceUnavailableResponse("AI reply drafting is temporarily unavailable. Try again later.");
     }
+    if (error instanceof RateLimitUnavailableError) return rateLimitUnavailableResponse();
     return errorResponse(error);
   }
 }

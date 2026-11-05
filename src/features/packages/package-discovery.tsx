@@ -149,22 +149,22 @@ export function PackageDiscovery({ packages }: PackageDiscoveryProps) {
             </button>
           )}
         </div>
-        <label className="block text-sm text-charcoal/70">
-          <span className="mb-2 block text-xs font-medium uppercase tracking-[0.18em] text-charcoal/50">
+        <div>
+          <label htmlFor="package-search-input" className="mb-2 block text-xs font-medium uppercase tracking-[0.18em] text-charcoal/50">
             Search
-          </span>
-          <span className="relative block">
+          </label>
+          <div className="relative">
             <Search size={16} className="absolute left-3 top-3.5 text-charcoal/45" aria-hidden="true" />
             <input
+              id="package-search-input"
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Title or destination"
-              className="h-11 w-full border border-charcoal/15 bg-white pl-10 pr-3 text-sm outline-none ring-gold transition focus:ring-1"
-              aria-label="Search by title or destination"
+              className="h-11 w-full border border-charcoal/15 bg-white pl-10 pr-3 text-sm outline-none ring-gold transition focus:ring-2 focus:border-forest"
             />
-          </span>
-        </label>
+          </div>
+        </div>
         <FilterSelect label="Destination" value={destination} onChange={setDestination} options={options.destinations} />
         <FilterSelect
           label="Duration"
@@ -185,19 +185,19 @@ export function PackageDiscovery({ packages }: PackageDiscoveryProps) {
             <span className="font-medium text-forest">{filteredPackages.length}</span>{" "}
             {filteredPackages.length === 1 ? "journey" : "journeys"} found
           </p>
-          <label className="flex items-center gap-3 text-sm text-charcoal/60">
-            <span>Sort by</span>
+          <div className="flex items-center gap-3 text-sm text-charcoal/60">
+            <label htmlFor="package-sort-select">Sort by</label>
             <select
+              id="package-sort-select"
               value={sort}
               onChange={(event) => setSort(event.target.value as SortOption)}
-              className="border-0 bg-transparent py-2 font-medium text-forest outline-none"
-              aria-label="Sort journeys"
+              className="border-0 bg-transparent py-2 font-medium text-forest outline-none focus-visible:ring-1 focus-visible:ring-gold"
             >
               <option value="featured">Featured</option>
               <option value="duration">Duration</option>
               <option value="price">Price</option>
             </select>
-          </label>
+          </div>
         </div>
 
         {filteredPackages.length > 0 ? (
@@ -239,15 +239,17 @@ function FilterSelect({
   options: string[];
   labels?: string[];
 }) {
+  const id = `filter-${label.toLowerCase().replace(/\s+/g, "-")}`;
   return (
-    <label className="block text-sm text-charcoal/70">
-      <span className="mb-2 block text-xs font-medium uppercase tracking-[0.18em] text-charcoal/50">
+    <div>
+      <label htmlFor={id} className="mb-2 block text-xs font-medium uppercase tracking-[0.18em] text-charcoal/50">
         {label}
-      </span>
+      </label>
       <select
+        id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-11 w-full border border-charcoal/15 bg-white px-3 text-sm text-forest outline-none ring-gold transition focus:ring-1"
+        className="h-11 w-full border border-charcoal/15 bg-white px-3 text-sm text-forest outline-none ring-gold transition focus:ring-2 focus:border-forest"
       >
         <option value="all">
           All {label === "Hotel category" ? "hotel categories" : `${label.toLowerCase()}s`}
@@ -258,7 +260,7 @@ function FilterSelect({
           </option>
         ))}
       </select>
-    </label>
+    </div>
   );
 }
 
@@ -271,7 +273,11 @@ function DiscoveryCard({ packageRecord }: { packageRecord: DiscoveryPackage }) {
 
   return (
     <article className="group overflow-hidden border border-charcoal/10 bg-white">
-      <Link href={`/packages/${packageRecord.slug}`} className="block">
+      <Link
+        href={`/packages/${packageRecord.slug}`}
+        aria-label={`View journey: ${packageRecord.title}`}
+        className="block rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold"
+      >
         <div className="relative aspect-[4/3] overflow-hidden">
           <ResilientImage
             src={getPackageImage(packageRecord.destination)}
