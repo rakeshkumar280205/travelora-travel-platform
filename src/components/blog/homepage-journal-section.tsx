@@ -60,9 +60,7 @@ export function HomepageJournalSection({
 }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
   const prefersReducedMotion = usePrefersReducedMotion();
-  const expandedGridRef = useRef<HTMLDivElement>(null);
   const autoPlayTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Compute number of cards per view based on viewport:
@@ -93,19 +91,6 @@ export function HomepageJournalSection({
 
   const handleNext = () => {
     setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
-  };
-
-  const toggleExpand = () => {
-    const nextState = !isExpanded;
-    setIsExpanded(nextState);
-    if (nextState) {
-      setTimeout(() => {
-        expandedGridRef.current?.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
-      }, 100);
-    }
   };
 
   if (!articles || articles.length === 0) {
@@ -223,40 +208,15 @@ export function HomepageJournalSection({
           </div>
         )}
 
-        {/* Expand / View All Actions */}
-        <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-charcoal/10 pt-8">
-          <button
-            type="button"
-            onClick={toggleExpand}
-            className="inline-flex min-h-12 items-center justify-center rounded-full border border-forest bg-forest px-8 text-sm font-medium text-white transition hover:bg-deep-green focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold cursor-pointer"
-          >
-            {isExpanded
-              ? "Collapse collection"
-              : `View all journals (${articles.length})`}
-          </button>
-
+        {/* Dedicated Journal Link */}
+        <div className="mt-12 flex items-center justify-center sm:justify-end border-t border-charcoal/10 pt-8">
           <Link
             href="/blog"
             className="text-sm font-medium text-forest hover:text-gold transition underline decoration-gold underline-offset-8"
           >
-            Visit dedicated Journal archive <span aria-hidden="true">→</span>
+            Visit dedicated Journal <span aria-hidden="true">→</span>
           </Link>
         </div>
-
-        {/* Expanded Grid View */}
-        {isExpanded && (
-          <div ref={expandedGridRef} id="all-journal-stories" className="mt-12 space-y-8 animate-fadeIn">
-            <div className="border-b border-charcoal/10 pb-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-gold">Complete Collection</p>
-              <h3 className="font-display mt-2 text-2xl sm:text-3xl text-forest">All published journal dispatches</h3>
-            </div>
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {articles.map((article) => (
-                <JournalCard key={article.id} article={article} />
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </section>
   );
