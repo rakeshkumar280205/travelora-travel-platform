@@ -5,8 +5,38 @@ import { z } from "zod";
 
 import { getGeminiEnv } from "@/config/env";
 
-const DEFAULT_MODEL = "gemini-2.5-flash";
+export const DEFAULT_MODEL = "gemini-3.5-flash-lite";
 const REQUEST_TIMEOUT_MS = 20_000;
+
+export function normalizeModelName(rawModel?: string | null): string {
+  if (!rawModel || typeof rawModel !== "string") {
+    return DEFAULT_MODEL;
+  }
+
+  let cleaned = rawModel.trim().replace(/^["']+|["']+$/g, "").trim();
+
+  // Strip any leading "models/" prefixes to prevent double prefixing in the SDK
+  while (cleaned.startsWith("models/")) {
+    cleaned = cleaned.slice("models/".length).trim();
+  }
+
+  // Strip any trailing slashes
+  cleaned = cleaned.replace(/\/+$/, "").trim();
+
+  if (!cleaned) {
+    return DEFAULT_MODEL;
+  }
+
+  // Validate supported identifier characters to prevent malformed request URIs
+  if (!/^[a-zA-Z0-9._\-/]+$/.test(cleaned) || cleaned.includes("..")) {
+    console.error(
+      `[GeminiService] Invalid model configuration: "${cleaned}". Falling back to default: ${DEFAULT_MODEL}`
+    );
+    return DEFAULT_MODEL;
+  }
+
+  return cleaned;
+}
 
 export class GeminiServiceError extends Error {
   constructor(
@@ -35,9 +65,10 @@ export async function generateStructuredJson<T>(
   parse: (value: unknown) => T,
 ) {
   const { GEMINI_MODEL = DEFAULT_MODEL } = getGeminiEnv();
+  const normalizedModel = normalizeModelName(GEMINI_MODEL);
   const client = getClient();
   const request = client.models.generateContent({
-    model: GEMINI_MODEL,
+    model: normalizedModel,
     contents: prompt,
     config: {
       responseMimeType: "application/json",

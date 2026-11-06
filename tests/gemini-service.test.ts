@@ -11,8 +11,10 @@ vi.mock("@google/genai", () => ({
 vi.mock("@/config/env", () => ({ getGeminiEnv }));
 
 import {
+  DEFAULT_MODEL,
   GeminiServiceError,
   generateStructuredJson,
+  normalizeModelName,
 } from "@/server/ai/gemini-service";
 
 describe("Gemini service", () => {
@@ -20,7 +22,7 @@ describe("Gemini service", () => {
     vi.clearAllMocks();
     getGeminiEnv.mockReturnValue({
       GEMINI_API_KEY: "test-key",
-      GEMINI_MODEL: "gemini-2.5-flash",
+      GEMINI_MODEL: "gemini-3.5-flash-lite",
     });
   });
 
@@ -81,8 +83,53 @@ describe("Gemini service", () => {
     );
 
     expect(generateContent).toHaveBeenCalledWith(expect.objectContaining({
-      model: "gemini-2.5-flash",
+      model: "gemini-3.5-flash-lite",
     }));
+  });
+
+  describe("model identifier normalization", () => {
+    it("preserves already clean model names", () => {
+      expect(normalizeModelName("gemini-3.5-flash-lite")).toBe("gemini-3.5-flash-lite");
+    });
+
+    it("strips single leading models/ prefix to prevent unexpected model format error", () => {
+      expect(normalizeModelName("models/gemini-3.5-flash-lite")).toBe("gemini-3.5-flash-lite");
+    });
+
+    it("strips redundant nested models/ prefixes", () => {
+      expect(normalizeModelName("models/models/gemini-3.5-flash-lite")).toBe("gemini-3.5-flash-lite");
+    });
+
+    it("strips wrapping quotes and whitespace from environment strings", () => {
+      expect(normalizeModelName('  "gemini-3.5-flash-lite"  ')).toBe("gemini-3.5-flash-lite");
+      expect(normalizeModelName("'models/gemini-3.5-flash-lite/'")).toBe("gemini-3.5-flash-lite");
+    });
+
+    it("falls back to DEFAULT_MODEL for invalid injection or malformed strings", () => {
+      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      expect(normalizeModelName("invalid..model")).toBe(DEFAULT_MODEL);
+      expect(normalizeModelName("")).toBe(DEFAULT_MODEL);
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Invalid model configuration"));
+      consoleSpy.mockRestore();
+    });
+
+    it("passes the normalized model name to the SDK when GEMINI_MODEL has a prefix", async () => {
+      getGeminiEnv.mockReturnValue({
+        GEMINI_API_KEY: "test-key",
+        GEMINI_MODEL: "models/gemini-3.5-flash-lite",
+      });
+      generateContent.mockResolvedValue({ text: JSON.stringify({ test: "ok" }) });
+
+      await generateStructuredJson(
+        "prompt",
+        { type: "OBJECT" },
+        (value) => value,
+      );
+
+      expect(generateContent).toHaveBeenCalledWith(expect.objectContaining({
+        model: "gemini-3.5-flash-lite",
+      }));
+    });
   });
 
   it("classifies network failures without leaking provider details or keys", async () => {
