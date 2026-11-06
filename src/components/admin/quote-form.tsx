@@ -128,6 +128,7 @@ export function QuoteForm({
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
+    if (saving) return;
     setSaving(true);
     setError("");
     setErrorDetails("");
@@ -160,10 +161,10 @@ export function QuoteForm({
         if (result?.error?.details?.configuredWindows) {
           setErrorDetails(`Configured seasons: ${result.error.details.configuredWindows}`);
         }
-        setSaving(false);
         return;
       }
 
+      router.refresh();
       const newQuoteId = result?.data?.id;
       if (newQuoteId) {
         router.push(`/admin/quotes/${newQuoteId}`);
@@ -172,6 +173,7 @@ export function QuoteForm({
       }
     } catch {
       setError("A network error occurred while communicating with the quotation engine.");
+    } finally {
       setSaving(false);
     }
   }

@@ -209,6 +209,11 @@ export async function addQuoteForStaff(
     },
   };
 
+  // Generate a distinct public access token for every new quote
+  const publicToken = crypto.randomBytes(24).toString("base64url");
+  const tokenExpiresAt = new Date();
+  tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 30); // 30-day default validity
+
   const createData: Prisma.QuoteCreateInput = {
     quoteNumber,
     status: "GENERATED",
@@ -226,6 +231,9 @@ export async function addQuoteForStaff(
     calculatedTotal: new Prisma.Decimal(calc.calculatedTotal),
     notes: validated.notes ?? null,
     snapshot: snapshot as unknown as Prisma.InputJsonValue,
+    publicToken,
+    tokenExpiresAt,
+    isTokenRevoked: false,
     package: { connect: { id: packageRecord.id } },
     seasonalPrice: { connect: { id: seasonMatch.id } },
     createdBy: { connect: { id: actorId } },

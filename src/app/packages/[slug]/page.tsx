@@ -71,7 +71,7 @@ export default async function PackageDetailPage({ params }: PackagePageProps) {
   if (!packageRecord) notFound();
 
   const relatedPackages = await getRelatedPublishedPackages(packageRecord.slug);
-  const validPrices = packageRecord.seasonalPrices.filter((price) => {
+  const validPrices = (packageRecord.seasonalPrices ?? []).filter((price) => {
     const amount = Number(price.amount);
     return Number.isFinite(amount) && amount > 0;
   });
@@ -152,7 +152,7 @@ export default async function PackageDetailPage({ params }: PackagePageProps) {
               <p className="text-xs uppercase tracking-[0.25em] text-gold">Day by day</p>
               <h2 className="font-display mt-5 text-4xl text-forest sm:text-5xl">The itinerary</h2>
               <div className="mt-8 divide-y divide-charcoal/15 border-y border-charcoal/15">
-                {packageRecord.itineraryDays.length > 0 ? (
+                {(packageRecord.itineraryDays ?? []).length > 0 ? (
                   packageRecord.itineraryDays.map((day, index) => (
                     <details key={day.id} open={index === 0} className="group py-5">
                       <summary className="flex cursor-pointer list-none items-center gap-3 sm:gap-5 rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold [&::-webkit-details-marker]:hidden">

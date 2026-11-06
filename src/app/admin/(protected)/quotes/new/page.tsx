@@ -52,6 +52,28 @@ export default async function NewQuotePage({
     take: 50,
   });
 
+  if (enquiryId && !enquiries.some((e) => e.id === enquiryId)) {
+    const specificEnquiry = await prisma.enquiry.findFirst({
+      where: { id: enquiryId, ...enquiryWhere },
+      select: {
+        id: true,
+        customerName: true,
+        email: true,
+        phone: true,
+        destination: true,
+        travelMonth: true,
+        startDate: true,
+        durationDays: true,
+        adults: true,
+        children: true,
+        packageId: true,
+      },
+    });
+    if (specificEnquiry) {
+      enquiries.unshift(specificEnquiry);
+    }
+  }
+
   const packageOptions = packages.map((pkg) => ({
     id: pkg.id,
     title: pkg.title,

@@ -34,7 +34,7 @@ const authEnvSchema = z.object({
 
 const geminiEnvSchema = z.object({
   GEMINI_API_KEY: optionalNonEmptyString,
-  GEMINI_MODEL: z.string().trim().min(1).default("gemini-3.5-flash-lite"),
+  GEMINI_MODEL: z.string().trim().min(1).default("gemini-2.5-flash"),
 });
 
 const publicEnvSchema = z.object({

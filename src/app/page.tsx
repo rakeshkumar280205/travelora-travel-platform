@@ -10,6 +10,28 @@ import { SectionHeading } from "@/components/ui/section-heading";
 import { FeaturedJourneys } from "@/features/packages/featured-journeys";
 import { FeaturedJourneysSkeleton } from "@/features/packages/featured-journeys-skeleton";
 import { ResilientImage } from "@/components/ui/resilient-image";
+import {
+  HomepageJournalSection,
+  HomepageJournalSkeleton,
+} from "@/components/blog/homepage-journal-section";
+import { getPublishedBlogPosts } from "@/server/services/blog-service";
+
+async function HomeJournal() {
+  const posts = await getPublishedBlogPosts();
+  const serialized = posts.map((post) => ({
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    excerpt: post.excerpt,
+    category: post.category,
+    featuredImage: post.featuredImage,
+    imageAlt: post.imageAlt,
+    publishedAt: post.publishedAt ? new Date(post.publishedAt).toISOString() : null,
+    content: post.content,
+    authorName: post.author?.name ?? null,
+  }));
+  return <HomepageJournalSection articles={serialized} />;
+}
 
 const destinations = [
   {
@@ -199,6 +221,10 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        <Suspense fallback={<HomepageJournalSkeleton />}>
+          <HomeJournal />
+        </Suspense>
 
         <section id="enquire" className="bg-gold px-6 py-24 sm:px-10 lg:px-16 lg:py-28">
           <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">

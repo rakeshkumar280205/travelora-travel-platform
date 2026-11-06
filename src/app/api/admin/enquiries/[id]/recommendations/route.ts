@@ -42,9 +42,14 @@ export async function POST(
     if (error instanceof Error && error.message === "ENQUIRY_NOT_FOUND") return notFoundResponse();
     if (error instanceof Error && error.message === "FORBIDDEN") return forbiddenResponse();
     if (isGeminiServiceError(error)) {
+      console.error(`[AI:recommendations] Service error code=${error.code}`);
       return serviceUnavailableResponse("AI recommendations are temporarily unavailable. Try again later.");
     }
-    if (error instanceof RateLimitUnavailableError) return rateLimitUnavailableResponse();
+    if (error instanceof RateLimitUnavailableError) {
+      console.error("[AI:recommendations] Rate limiter unavailable in current environment");
+      return rateLimitUnavailableResponse();
+    }
+    console.error("[AI:recommendations] Unexpected failure:", error instanceof Error ? error.message : "unknown");
     return errorResponse(error);
   }
 }

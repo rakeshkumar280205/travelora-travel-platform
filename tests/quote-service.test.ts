@@ -309,6 +309,72 @@ describe("quote service operations & authorization", () => {
       expect(result.isTokenRevoked).toBe(false);
     });
 
+    it("generates a distinct public token on creation and supports multiple quotes for the same enquiry", async () => {
+      prisma.package.findUnique.mockResolvedValue(samplePackage);
+      prisma.user.findUnique.mockResolvedValue({ name: "Ananya Iyer", email: "ananya@travelora.in" });
+      generateUniqueQuoteNumber.mockResolvedValueOnce("TRV-QT-2026-0001").mockResolvedValueOnce("TRV-QT-2026-0002");
+
+      let createdFirstQuoteData: { publicToken?: string; calculatedTotal?: unknown } | null = null;
+      let createdSecondQuoteData: { publicToken?: string; calculatedTotal?: unknown } | null = null;
+
+      createQuote.mockImplementationOnce((data) => {
+        createdFirstQuoteData = data;
+        return Promise.resolve({ id: "quote-first", ...data });
+      }).mockImplementationOnce((data) => {
+        createdSecondQuoteData = data;
+        return Promise.resolve({ id: "quote-second", ...data });
+      });
+
+      const firstQuote = await addQuoteForStaff(
+        {
+          enquiryId: "enquiry-123",
+          packageId: "pkg-1",
+          seasonalPriceId: "sp-1",
+          customerName: "Rohan Varma",
+          customerEmail: "rohan@example.com",
+          startDate: "2026-11-15",
+          durationDays: 4,
+          adults: 2,
+          children: 0,
+        },
+        "admin-1",
+        "ADMIN"
+      );
+
+      const secondQuote = await addQuoteForStaff(
+        {
+          enquiryId: "enquiry-123",
+          packageId: "pkg-1",
+          seasonalPriceId: "sp-1",
+          customerName: "Rohan Varma",
+          customerEmail: "rohan@example.com",
+          startDate: "2026-11-20",
+          durationDays: 4,
+          adults: 4,
+          children: 1,
+        },
+        "admin-1",
+        "ADMIN"
+      );
+
+      expect(firstQuote.id).toBe("quote-first");
+      expect(secondQuote.id).toBe("quote-second");
+      expect(firstQuote.quoteNumber).toBe("TRV-QT-2026-0001");
+      expect(secondQuote.quoteNumber).toBe("TRV-QT-2026-0002");
+
+      const firstData = createdFirstQuoteData as unknown as { publicToken?: string; calculatedTotal?: unknown };
+      const secondData = createdSecondQuoteData as unknown as { publicToken?: string; calculatedTotal?: unknown };
+
+      // Verify each quote receives an unguessable public token
+      expect(firstData.publicToken).toBeDefined();
+      expect(secondData.publicToken).toBeDefined();
+      expect(firstData.publicToken).not.toBe(secondData.publicToken);
+
+      // Verify second quote calculation reflects updated inputs without modifying first quote
+      expect(Number(firstData.calculatedTotal)).toBe(80000); // 2 adults * 40000
+      expect(Number(secondData.calculatedTotal)).toBe(160000); // 4 adults * 40000
+    });
+
     it("sanitizes staff-only internal notes for public client preview", async () => {
       findQuoteByPublicToken.mockResolvedValueOnce(sampleQuote);
 

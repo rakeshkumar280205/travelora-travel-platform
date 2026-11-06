@@ -12,6 +12,7 @@ type Enquiry = {
   notes: Array<{ id: string; body: string; createdAt: string; author: { name: string } }>;
   replies: Array<{ id: string; body: string; isDraft: boolean; updatedAt: string; author: { name: string } }>;
   activities: Array<{ id: string; type: string; createdAt: string; actor: { name: string } | null }>;
+  quotes?: Array<{ id: string; quoteNumber: string; status: string; calculatedTotal: string | number; currency: string; createdAt: string; publicToken?: string | null }>;
   createdAt: string;
 };
 type ExtractedRequirements = {
@@ -147,6 +148,52 @@ export function EnquiryDetail({ enquiry: initial, consultants, canAssign, canUse
         <div className="space-y-8">
           <Panel title="Original message"><p className="whitespace-pre-wrap text-sm leading-7 text-charcoal/70">{enquiry.message}</p></Panel>
           <Panel title="Travel requirements"><dl className="grid gap-4 text-sm sm:grid-cols-2"><Info label="Destination" value={enquiry.destination} /><Info label="Package" value={enquiry.package?.title ?? "General enquiry"} /><Info label="Travel month" value={enquiry.travelMonth ?? "Not specified"} /><Info label="Duration" value={enquiry.durationDays ? `${enquiry.durationDays} days` : "Not specified"} /><Info label="Travellers" value={`${enquiry.adults} adults${enquiry.children ? `, ${enquiry.children} children` : ""}`} /><Info label="Budget" value={enquiry.budget ? `${enquiry.currency ?? "INR"} ${enquiry.budget}` : "Not specified"} /></dl></Panel>
+          <Panel title="Associated quotations">
+            {(enquiry.quotes && enquiry.quotes.length > 0) ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-charcoal/10">
+                  <p className="text-xs text-charcoal/60">{enquiry.quotes.length} {enquiry.quotes.length === 1 ? "quotation" : "quotations"} on file (newest first)</p>
+                  <Link href={`/admin/quotes/new?enquiryId=${enquiry.id}`} className="text-xs font-medium text-forest hover:text-gold transition underline">
+                    + Generate another quote
+                  </Link>
+                </div>
+                {enquiry.quotes.map((q) => (
+                  <div key={q.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border border-charcoal/10 p-3 rounded-lg bg-ivory/50">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm text-forest">{q.quoteNumber}</span>
+                        <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[10px] font-semibold text-deep-green">
+                          {q.status}
+                        </span>
+                      </div>
+                      <p className="text-xs text-charcoal/50 mt-1">
+                        {q.currency} {Number(q.calculatedTotal).toLocaleString("en-IN")} · Created {formatDate(q.createdAt)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs">
+                      <Link href={`/admin/quotes/${q.id}`} className="rounded bg-deep-green px-3 py-1.5 text-white hover:bg-forest transition">
+                        View details
+                      </Link>
+                      {q.publicToken && (
+                        <Link href={`/quotes/${q.publicToken}`} target="_blank" className="rounded border border-charcoal/20 px-3 py-1.5 text-charcoal/70 hover:border-gold hover:text-forest transition">
+                          Client preview ↗
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-2">
+                <p className="text-sm text-charcoal/60">No quotations generated yet for this enquiry.</p>
+                <div className="mt-4">
+                  <Link href={`/admin/quotes/new?enquiryId=${enquiry.id}`} className="inline-flex min-h-10 items-center justify-center rounded-lg bg-gold px-4 text-xs font-medium text-deep-green hover:bg-forest hover:text-white transition">
+                    Build first formal quote
+                  </Link>
+                </div>
+              </div>
+            )}
+          </Panel>
           <Panel title="Internal notes"><div className="space-y-4">{enquiry.notes.length === 0 ? <p className="text-sm text-charcoal/55">No internal notes yet.</p> : enquiry.notes.map((note) => <div key={note.id} className="border-l-2 border-gold pl-4"><p className="whitespace-pre-wrap text-sm leading-6 text-charcoal/70">{note.body}</p><p className="mt-2 text-xs text-charcoal/45">{note.author.name} · {formatDate(note.createdAt)}</p></div>)}<form onSubmit={(event) => addRecord(event, "notes")} className="grid gap-3 border-t border-charcoal/10 pt-5"><label htmlFor="note-body" className="text-sm font-medium text-forest">Add private note</label><textarea id="note-body" name="body" required maxLength={4000} rows={3} className="rounded-lg border border-charcoal/15 p-3 text-sm outline-none focus:border-forest" /><button className="w-fit rounded-full bg-deep-green px-5 py-2.5 text-xs font-medium text-white hover:bg-forest">Save note</button></form></div></Panel>
           <Panel title="Reply drafts">{enquiry.replies.length > 0 && <div className="mb-5 space-y-4">{enquiry.replies.map((reply) => <div key={reply.id} className="border-l-2 border-forest pl-4"><p className="whitespace-pre-wrap text-sm leading-6 text-charcoal/70">{reply.body}</p><p className="mt-2 text-xs text-charcoal/45">{reply.author.name} · {formatDate(reply.updatedAt)} · Draft only</p></div>)}</div>}<form onSubmit={(event) => addRecord(event, "reply")} className="grid gap-3"><label htmlFor="reply-body" className="text-sm font-medium text-forest">Save a response draft</label><textarea id="reply-body" name="body" required maxLength={8000} rows={5} className="rounded-lg border border-charcoal/15 p-3 text-sm outline-none focus:border-forest" /><p className="text-xs text-charcoal/45">Saving does not send email or WhatsApp messages.</p><button className="w-fit rounded-full bg-deep-green px-5 py-2.5 text-xs font-medium text-white hover:bg-forest">Save reply draft</button></form></Panel>
         </div>

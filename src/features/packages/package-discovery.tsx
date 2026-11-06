@@ -39,7 +39,7 @@ export function PackageDiscovery({ packages }: PackageDiscoveryProps) {
       seasons: [
         ...new Set(
           packages.flatMap((item) =>
-            item.seasonalPrices.map((price) => price.seasonName)
+            (item.seasonalPrices ?? []).map((price) => price.seasonName)
           )
         ),
       ].sort(),

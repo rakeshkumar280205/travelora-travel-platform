@@ -174,17 +174,16 @@ export async function generateUniqueQuoteNumber(): Promise<string> {
   let candidate = `TRV-QT-${year}-${String(count + 1).padStart(4, "0")}`;
 
   let attempts = 0;
-  while (attempts < 10) {
+  while (attempts < 15) {
     const existing = await prisma.quote.findUnique({
       where: { quoteNumber: candidate },
       select: { id: true },
     });
     if (!existing) return candidate;
 
-    // Suffix random 4-digit number on collision
     const random = Math.floor(1000 + Math.random() * 9000);
-    candidate = `TRV-QT-${year}-${random}`;
+    candidate = `TRV-QT-${year}-${String(count + attempts + 2).padStart(4, "0")}-${random}`;
     attempts += 1;
   }
-  return candidate;
+  return `TRV-QT-${year}-${Date.now().toString().slice(-6)}`;
 }

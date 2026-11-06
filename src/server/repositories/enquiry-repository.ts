@@ -86,6 +86,18 @@ export async function findEnquiryById(id: string) {
         include: { actor: { select: { id: true, name: true } } },
         orderBy: { createdAt: "asc" },
       },
+      quotes: {
+        select: {
+          id: true,
+          quoteNumber: true,
+          status: true,
+          calculatedTotal: true,
+          currency: true,
+          createdAt: true,
+          publicToken: true,
+        },
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 }

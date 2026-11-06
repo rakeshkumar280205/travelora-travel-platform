@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { getGeminiEnv } from "@/config/env";
 
-const DEFAULT_MODEL = "gemini-3.5-flash-lite";
+const DEFAULT_MODEL = "gemini-2.5-flash";
 const REQUEST_TIMEOUT_MS = 20_000;
 
 export class GeminiServiceError extends Error {

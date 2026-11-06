@@ -12,7 +12,7 @@ export function presentPackage(packageRecord: {
   status: string;
   createdAt: Date;
   updatedAt: Date;
-  seasonalPrices: Array<{
+  seasonalPrices?: Array<{
     id: string;
     seasonName: string;
     startDate: Date | string;
@@ -21,7 +21,7 @@ export function presentPackage(packageRecord: {
     currency: string;
     pricingBasis: string;
   }>;
-  itineraryDays: Array<{
+  itineraryDays?: Array<{
     id: string;
     dayNumber: number;
     title: string;
@@ -30,10 +30,11 @@ export function presentPackage(packageRecord: {
 }) {
   return {
     ...packageRecord,
-    seasonalPrices: packageRecord.seasonalPrices.map((price) => ({
+    seasonalPrices: (packageRecord.seasonalPrices ?? []).map((price) => ({
       ...price,
       amount: String(price.amount),
     })),
+    itineraryDays: packageRecord.itineraryDays ?? [],
   };
 }
 

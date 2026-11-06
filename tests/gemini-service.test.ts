@@ -20,7 +20,7 @@ describe("Gemini service", () => {
     vi.clearAllMocks();
     getGeminiEnv.mockReturnValue({
       GEMINI_API_KEY: "test-key",
-      GEMINI_MODEL: "gemini-3.5-flash-lite",
+      GEMINI_MODEL: "gemini-2.5-flash",
     });
   });
 
@@ -81,7 +81,7 @@ describe("Gemini service", () => {
     );
 
     expect(generateContent).toHaveBeenCalledWith(expect.objectContaining({
-      model: "gemini-3.5-flash-lite",
+      model: "gemini-2.5-flash",
     }));
   });
 

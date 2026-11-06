@@ -7,7 +7,11 @@ const packageInclude = {
   itineraryDays: { orderBy: { dayNumber: "asc" as const } },
 };
 
-const publishedInclude = { publishedVersion: true };
+const publishedInclude = {
+  publishedVersion: true,
+  seasonalPrices: { orderBy: { startDate: "asc" as const } },
+  itineraryDays: { orderBy: { dayNumber: "asc" as const } },
+};
 
 export type PackageSnapshot = {
   slug: string;
@@ -36,26 +40,75 @@ export type PackageSnapshot = {
 
 function snapshotPackage(packageRecord: {
   id: string;
+  slug?: string;
+  title?: string;
+  destination?: string;
+  durationDays?: number;
+  description?: string;
+  category?: string;
+  hotelCategory?: string;
   status: string;
   createdAt: Date;
   updatedAt: Date;
   publishedVersion: { id: string; versionNumber: number; snapshot: unknown } | null;
+  seasonalPrices?: Array<{
+    id: string;
+    seasonName: string;
+    startDate: Date | string;
+    endDate: Date | string;
+    amount: unknown;
+    currency: string;
+    pricingBasis: string;
+  }>;
+  itineraryDays?: Array<{
+    id: string;
+    dayNumber: number;
+    title: string;
+    description: string;
+  }>;
 }) {
   if (!packageRecord.publishedVersion) return null;
+  const snapshot = (packageRecord.publishedVersion.snapshot ?? {}) as Partial<PackageSnapshot>;
+
+  const seasonalPrices = Array.isArray(snapshot.seasonalPrices) && snapshot.seasonalPrices.length > 0
+    ? snapshot.seasonalPrices
+    : Array.isArray(packageRecord.seasonalPrices)
+      ? packageRecord.seasonalPrices.map((sp) => ({
+          id: sp.id,
+          seasonName: sp.seasonName,
+          startDate: sp.startDate instanceof Date ? sp.startDate.toISOString() : String(sp.startDate),
+          endDate: sp.endDate instanceof Date ? sp.endDate.toISOString() : String(sp.endDate),
+          amount: String(sp.amount),
+          currency: sp.currency,
+          pricingBasis: sp.pricingBasis,
+        }))
+      : [];
+
+  const itineraryDays = Array.isArray(snapshot.itineraryDays) && snapshot.itineraryDays.length > 0
+    ? snapshot.itineraryDays
+    : Array.isArray(packageRecord.itineraryDays)
+      ? packageRecord.itineraryDays.map((d) => ({
+          id: d.id,
+          dayNumber: d.dayNumber,
+          title: d.title,
+          description: d.description,
+        }))
+      : [];
+
   return {
     id: packageRecord.id,
-    slug: (packageRecord.publishedVersion.snapshot as PackageSnapshot).slug,
-    title: (packageRecord.publishedVersion.snapshot as PackageSnapshot).title,
-    destination: (packageRecord.publishedVersion.snapshot as PackageSnapshot).destination,
-    durationDays: (packageRecord.publishedVersion.snapshot as PackageSnapshot).durationDays,
-    description: (packageRecord.publishedVersion.snapshot as PackageSnapshot).description,
-    category: (packageRecord.publishedVersion.snapshot as PackageSnapshot).category,
-    hotelCategory: (packageRecord.publishedVersion.snapshot as PackageSnapshot).hotelCategory,
+    slug: snapshot.slug ?? packageRecord.slug ?? "",
+    title: snapshot.title ?? packageRecord.title ?? "",
+    destination: snapshot.destination ?? packageRecord.destination ?? "",
+    durationDays: snapshot.durationDays ?? packageRecord.durationDays ?? 0,
+    description: snapshot.description ?? packageRecord.description ?? "",
+    category: snapshot.category ?? packageRecord.category ?? "",
+    hotelCategory: snapshot.hotelCategory ?? packageRecord.hotelCategory ?? "",
     status: "PUBLISHED",
     createdAt: packageRecord.createdAt,
     updatedAt: packageRecord.updatedAt,
-    seasonalPrices: (packageRecord.publishedVersion.snapshot as PackageSnapshot).seasonalPrices,
-    itineraryDays: (packageRecord.publishedVersion.snapshot as PackageSnapshot).itineraryDays,
+    seasonalPrices,
+    itineraryDays,
   };
 }
 
@@ -69,8 +122,17 @@ export async function listPublishedPackages() {
 }
 
 export async function findPublishedPackageBySlug(slug: string) {
-  const packages = await listPublishedPackages();
-  return packages.find((item) => item.slug === slug) ?? null;
+  if (!slug || typeof slug !== "string") return null;
+  const packageRecord = await prisma.package.findFirst({
+    where: {
+      slug,
+      status: "PUBLISHED",
+      publishedVersion: { isNot: null },
+    },
+    include: publishedInclude,
+  });
+  if (!packageRecord) return null;
+  return snapshotPackage(packageRecord);
 }
 
 export async function listRelatedPublishedPackages(slug: string) {

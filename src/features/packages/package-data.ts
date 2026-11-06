@@ -12,10 +12,11 @@ export async function getDiscoveryPackages(): Promise<DiscoveryPackage[]> {
     ...item,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
-    seasonalPrices: item.seasonalPrices.map((price) => ({
+    seasonalPrices: (item.seasonalPrices ?? []).map((price) => ({
       ...price,
       startDate: new Date(price.startDate).toISOString(),
       endDate: new Date(price.endDate).toISOString(),
     })),
+    itineraryDays: item.itineraryDays ?? [],
   }));
 }

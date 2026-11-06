@@ -112,18 +112,41 @@ async function main() {
     where: { packageId: publishedPackage.id },
   });
   if (!existingVersion) {
+    const fullPackage = await prisma.package.findUnique({
+      where: { id: publishedPackage.id },
+      include: {
+        seasonalPrices: { orderBy: { startDate: "asc" } },
+        itineraryDays: { orderBy: { dayNumber: "asc" } },
+      },
+    });
+
     const version = await prisma.packageVersion.create({
       data: {
         packageId: publishedPackage.id,
         versionNumber: 1,
         snapshot: {
-          slug: publishedPackage.slug,
-          title: publishedPackage.title,
-          destination: publishedPackage.destination,
-          durationDays: publishedPackage.durationDays,
-          category: publishedPackage.category,
-          hotelCategory: publishedPackage.hotelCategory,
-          description: publishedPackage.description,
+          slug: fullPackage.slug,
+          title: fullPackage.title,
+          destination: fullPackage.destination,
+          durationDays: fullPackage.durationDays,
+          category: fullPackage.category,
+          hotelCategory: fullPackage.hotelCategory,
+          description: fullPackage.description,
+          seasonalPrices: fullPackage.seasonalPrices.map((sp) => ({
+            id: sp.id,
+            seasonName: sp.seasonName,
+            startDate: sp.startDate.toISOString(),
+            endDate: sp.endDate.toISOString(),
+            amount: String(sp.amount),
+            currency: sp.currency,
+            pricingBasis: sp.pricingBasis,
+          })),
+          itineraryDays: fullPackage.itineraryDays.map((d) => ({
+            id: d.id,
+            dayNumber: d.dayNumber,
+            title: d.title,
+            description: d.description,
+          })),
         },
       },
     });

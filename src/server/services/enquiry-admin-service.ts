@@ -334,7 +334,7 @@ export async function createAiReplyDraft(
       destination: relevantPackage.destination,
       durationDays: relevantPackage.durationDays,
       hotelCategory: relevantPackage.hotelCategory,
-      seasonalPrices: relevantPackage.seasonalPrices.filter((price) => Number(price.amount) > 0),
+      seasonalPrices: (relevantPackage.seasonalPrices ?? []).filter((price) => Number(price.amount) > 0),
     } : null)}. Enquiry: ${JSON.stringify({
       destination: enquiry!.destination,
       travelMonth: enquiry!.travelMonth,
