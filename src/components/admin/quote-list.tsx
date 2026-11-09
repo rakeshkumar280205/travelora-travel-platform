@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { Download, ExternalLink, Eye, Plus, Search } from "lucide-react";
+import { Download, ExternalLink, Eye, Search } from "lucide-react";
 
 export type QuoteRow = {
   id: string;
@@ -26,10 +26,8 @@ export type QuoteRow = {
 
 export function QuoteList({
   quotes,
-  canCreate,
 }: {
   quotes: QuoteRow[];
-  canCreate: boolean;
 }) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<string>("ALL");
@@ -67,7 +65,7 @@ export function QuoteList({
       <h2 id="quote-list-heading" className="sr-only">Quotations list</h2>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col gap-4 border-b border-charcoal/10 p-5 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-4 border-b border-charcoal/10 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex-1">
           <label htmlFor="quote-admin-search" className="sr-only">Search quotations</label>
           <Search size={17} className="absolute left-4 top-3.5 text-charcoal/40" aria-hidden="true" />
@@ -80,33 +78,22 @@ export function QuoteList({
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div>
-            <label htmlFor="quote-admin-status-filter" className="sr-only">Filter by status</label>
-            <select
-              id="quote-admin-status-filter"
-              value={status}
-              onChange={(event) => setStatus(event.target.value)}
-              className="w-full border border-charcoal/15 bg-ivory px-4 py-3 text-sm outline-none transition focus:border-forest focus:ring-2 focus:ring-gold/40 sm:w-44"
-            >
-              <option value="ALL">All statuses</option>
-              <option value="DRAFT">Draft</option>
-              <option value="GENERATED">Generated</option>
-              <option value="SENT">Sent</option>
-              <option value="ACCEPTED">Accepted</option>
-              <option value="REJECTED">Rejected</option>
-              <option value="EXPIRED">Expired</option>
-            </select>
-          </div>
-
-          {canCreate && (
-            <Link
-              href="/admin/quotes/new"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-gold px-5 text-xs font-semibold text-deep-green hover:bg-forest hover:text-white transition"
-            >
-              <Plus size={15} aria-hidden="true" /> Create quote
-            </Link>
-          )}
+        <div className="w-full sm:w-auto">
+          <label htmlFor="quote-admin-status-filter" className="sr-only">Filter by status</label>
+          <select
+            id="quote-admin-status-filter"
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
+            className="w-full border border-charcoal/15 bg-ivory px-4 py-3 text-sm outline-none transition focus:border-forest focus:ring-2 focus:ring-gold/40 sm:w-48"
+          >
+            <option value="ALL">All statuses</option>
+            <option value="DRAFT">Draft</option>
+            <option value="GENERATED">Generated</option>
+            <option value="SENT">Sent</option>
+            <option value="ACCEPTED">Accepted</option>
+            <option value="REJECTED">Rejected</option>
+            <option value="EXPIRED">Expired</option>
+          </select>
         </div>
       </div>
 

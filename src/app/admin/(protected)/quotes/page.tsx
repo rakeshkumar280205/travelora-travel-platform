@@ -52,7 +52,6 @@ export default async function AdminQuotesPage() {
           createdAt: q.createdAt.toISOString(),
           consultantName: q.createdBy?.name ?? null,
         }))}
-        canCreate={["ADMIN", "CONSULTANT", "EDITOR"].includes(session.user.role)}
       />
     </div>
   );

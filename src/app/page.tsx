@@ -67,14 +67,6 @@ const destinations = [
       "https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=1200&q=85",
   },
   {
-    name: "Rameswaram",
-    region: "Tamil Nadu",
-    image:
-      "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1200&q=85",
-    fallback:
-      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=85",
-  },
-  {
     name: "Kanyakumari",
     region: "Tamil Nadu",
     image:

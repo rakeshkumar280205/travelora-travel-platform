@@ -23,59 +23,46 @@ export default async function AdminDashboardPage() {
         <StatCard label="Staff users" value={stats.totalStaffUsers} icon={<Users size={19} />} />
       </section>
 
-      <div className="grid gap-8 xl:grid-cols-[1.35fr_0.65fr]">
-        <section className="border border-charcoal/10 bg-white">
-          <div className="flex items-center justify-between border-b border-charcoal/10 px-6 py-5">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-gold">Content</p>
-              <h2 className="font-display mt-2 text-2xl text-forest">Recent packages</h2>
-            </div>
-            <Link href="/admin/packages" className="text-xs font-medium text-forest hover:text-gold">
-              Manage all <span aria-hidden="true">↗</span>
-            </Link>
+      <section className="border border-charcoal/10 bg-white">
+        <div className="flex items-center justify-between border-b border-charcoal/10 px-6 py-5">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-gold">Content</p>
+            <h2 className="font-display mt-2 text-2xl text-forest">Recent packages</h2>
           </div>
-          {recentPackages.length > 0 ? (
-            <div className="divide-y divide-charcoal/10">
-              {recentPackages.map((packageRecord) => (
-                <div key={packageRecord.id} className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <h3 className="font-medium text-forest">{packageRecord.title}</h3>
-                    <p className="mt-1 text-sm text-charcoal/55">
-                      {packageRecord.destination} · {packageRecord.durationDays} days
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-5">
-                    <StatusBadge status={packageRecord.status} />
-                    <span className="text-xs text-charcoal/45">
-                      {formatDate(packageRecord.updatedAt)}
-                    </span>
-                    <Link
-                      href={`/admin/packages#${packageRecord.id}`}
-                      aria-label={`Manage ${packageRecord.title}`}
-                      className="rounded-full p-2 text-forest hover:bg-ivory hover:text-gold"
-                    >
-                      <ArrowUpRight size={17} />
-                    </Link>
-                  </div>
+          <Link href="/admin/packages" className="text-xs font-medium text-forest hover:text-gold">
+            Manage all <span aria-hidden="true">↗</span>
+          </Link>
+        </div>
+        {recentPackages.length > 0 ? (
+          <div className="divide-y divide-charcoal/10">
+            {recentPackages.map((packageRecord) => (
+              <div key={packageRecord.id} className="flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="font-medium text-forest">{packageRecord.title}</h3>
+                  <p className="mt-1 text-sm text-charcoal/55">
+                    {packageRecord.destination} · {packageRecord.durationDays} days
+                  </p>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState title="No packages yet" body="Create your first journey to see it here." />
-          )}
-        </section>
-
-        <section className="border border-charcoal/10 bg-white">
-          <div className="border-b border-charcoal/10 px-6 py-5">
-            <p className="text-xs uppercase tracking-[0.2em] text-gold">Audit trail</p>
-            <h2 className="font-display mt-2 text-2xl text-forest">Recent activity</h2>
+                <div className="flex items-center gap-5">
+                  <StatusBadge status={packageRecord.status} />
+                  <span className="text-xs text-charcoal/45">
+                    {formatDate(packageRecord.updatedAt)}
+                  </span>
+                  <Link
+                    href={`/admin/packages#${packageRecord.id}`}
+                    aria-label={`Manage ${packageRecord.title}`}
+                    className="rounded-full p-2 text-forest hover:bg-ivory hover:text-gold"
+                  >
+                    <ArrowUpRight size={17} />
+                  </Link>
+                </div>
+              </div>
+            ))}
           </div>
-          <EmptyState
-            title="No activity recorded"
-            body="Package and staff activity will appear here when activity tracking is available."
-          />
-        </section>
-      </div>
+        ) : (
+          <EmptyState title="No packages yet" body="Create your first journey to see it here." />
+        )}
+      </section>
     </div>
   );
 }

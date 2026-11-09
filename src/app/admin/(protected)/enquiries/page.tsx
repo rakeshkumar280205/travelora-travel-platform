@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { EnquiryFilters } from "@/components/admin/enquiry-filters";
 import { enquiryListQuerySchema } from "@/lib/validation/admin-enquiry-schemas";
 import { getStaffSession } from "@/server/services/authorization";
 import { getEnquiryConsultants, getEnquiryList } from "@/server/services/enquiry-admin-service";
@@ -22,9 +23,9 @@ export default async function EnquiriesPage({ searchParams }: Props) {
     page: typeof raw.page === "string" ? raw.page : undefined,
     pageSize: typeof raw.pageSize === "string" ? raw.pageSize : undefined,
     search: typeof raw.search === "string" ? raw.search : undefined,
-    status: typeof raw.status === "string" ? raw.status : undefined,
-    packageId: typeof raw.packageId === "string" ? raw.packageId : undefined,
-    assignedConsultantId: typeof raw.assignedConsultantId === "string" ? raw.assignedConsultantId : undefined,
+    status: typeof raw.status === "string" && raw.status ? raw.status : undefined,
+    packageId: typeof raw.packageId === "string" && raw.packageId ? raw.packageId : undefined,
+    assignedConsultantId: typeof raw.assignedConsultantId === "string" && raw.assignedConsultantId ? raw.assignedConsultantId : undefined,
   });
   const result = await getEnquiryList(
     query,
@@ -44,25 +45,15 @@ export default async function EnquiriesPage({ searchParams }: Props) {
           Review incoming travel requirements and keep every conversation moving.
         </p>
       </header>
-      <form className="grid gap-3 border border-charcoal/10 bg-white p-5 sm:grid-cols-2 xl:grid-cols-[1fr_auto_auto_auto_auto]">
-        <label className="sr-only" htmlFor="enquiry-search">Search enquiries</label>
-        <input id="enquiry-search" name="search" defaultValue={query.search} placeholder="Search name, email or destination" className="min-h-11 rounded-lg border border-charcoal/15 px-4 text-sm outline-none focus:border-forest focus:ring-2 focus:ring-gold/40" />
-        <select name="status" defaultValue={query.status ?? ""} aria-label="Filter by status" className="min-h-11 rounded-lg border border-charcoal/15 bg-white px-4 text-sm outline-none focus:border-forest focus:ring-2 focus:ring-gold/40">
-          <option value="">All statuses</option>
-          {["NEW", "IN_PROGRESS", "WAITING_FOR_CUSTOMER", "RESPONDED", "CONVERTED", "CLOSED"].map((status) => <option key={status} value={status}>{status.replaceAll("_", " ")}</option>)}
-        </select>
-        <select name="packageId" defaultValue={query.packageId ?? ""} aria-label="Filter by package" className="min-h-11 rounded-lg border border-charcoal/15 bg-white px-4 text-sm outline-none focus:border-forest focus:ring-2 focus:ring-gold/40">
-          <option value="">All packages</option>
-          {packages.map((packageRecord) => <option key={packageRecord.id} value={packageRecord.id}>{packageRecord.title}</option>)}
-        </select>
-        {session.user.role === "ADMIN" && (
-          <select name="assignedConsultantId" defaultValue={query.assignedConsultantId ?? ""} aria-label="Filter by consultant" className="min-h-11 rounded-lg border border-charcoal/15 bg-white px-4 text-sm outline-none focus:border-forest focus:ring-2 focus:ring-gold/40">
-            <option value="">All consultants</option>
-            {consultants.map((consultant) => <option key={consultant.id} value={consultant.id}>{consultant.name}</option>)}
-          </select>
-        )}
-        <button type="submit" className="min-h-11 rounded-full bg-deep-green px-5 text-sm font-medium text-white hover:bg-forest">Filter</button>
-      </form>
+      <EnquiryFilters
+        initialSearch={query.search}
+        initialStatus={query.status}
+        initialPackageId={query.packageId}
+        initialAssignedConsultantId={query.assignedConsultantId}
+        packages={packages.map((p) => ({ id: p.id, title: p.title }))}
+        consultants={consultants.map((c) => ({ id: c.id, name: c.name }))}
+        isAdmin={session.user.role === "ADMIN"}
+      />
       <section className="overflow-hidden border border-charcoal/10 bg-white">
         <div className="flex items-center justify-between border-b border-charcoal/10 px-6 py-5">
           <div><p className="text-xs uppercase tracking-[0.2em] text-gold">Inbox</p><h2 className="font-display mt-2 text-2xl text-forest">{result.total} enquiries</h2></div>
