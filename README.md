@@ -13,9 +13,10 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon_Serverless-4169e1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech/)
 [![Prisma](https://img.shields.io/badge/Prisma-6.16.1-2d3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-06b6d4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Vitest](https://img.shields.io/badge/Vitest-121_Tests_Passing-6e9f18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Vitest](https://img.shields.io/badge/Vitest-138_Tests_Passing-6e9f18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
 [![Upstash](https://img.shields.io/badge/Upstash-Redis_Rate_Limiting-00e9a3?style=for-the-badge&logo=upstash&logoColor=black)](https://upstash.com/)
 [![Gemini](https://img.shields.io/badge/Gemini_AI-3.5_Flash_Lite-gold?style=for-the-badge&logo=google&logoColor=black)](https://ai.google.dev/)
+[![Deployment](https://img.shields.io/badge/Vercel-Live_Production-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://travelora-travel-platform.vercel.app)
 
 <br />
 
@@ -44,7 +45,7 @@ Modern luxury tour operators and bespoke travel ateliers struggle with fragmente
 ### 1. Public Travel Discovery & Packages
 - **Editorial Package Catalog** (`/packages`): Responsive grid featuring destination badges, duration tags, hotel categories, and verified seasonal pricing tiers.
 - **Deep Itinerary Presentation** (`/packages/[slug]`): Complete day-by-day itineraries, inclusion/exclusion breakdowns, seasonal price cards, and interactive enquiry modals.
-- **Accessible & Resilient UI**: Strict WCAG compliance, accessible form labels, mobile-first responsive design (tested at 375px, 768px, and 1440px), and fallback error states.
+- **Accessible & Resilient UI**: Strict WCAG compliance, accessible form labels, mobile-first responsive design, and fallback error states.
 
 ### 2. Seasonal Package Pricing & CMS
 - **Database-Backed Seasonal Tiers**: Distinct pricing windows (e.g., *Peak*, *Monsoon*, *All-Year*) with explicit pricing bases (`Per person; indicative package price; GST treatment to be confirmed`).
@@ -52,7 +53,7 @@ Modern luxury tour operators and bespoke travel ateliers struggle with fragmente
 - **Instant Rollback**: Administrators and editors can inspect historical versions and revert package state instantly without orphan records.
 
 ### 3. Enquiry Management & Consultant Operations
-- **Centralized Staff Inbox** (`/admin/enquiries`): Filter by status (`NEW`, `IN_PROGRESS`, `WAITING_FOR_CUSTOMER`, `RESPONDED`, `CONVERTED`, `CLOSED`) and assigned consultant.
+- **Dynamic Enquiry Inbox** (`/admin/enquiries`): Real-time debounced search, instant status/package/consultant dropdown filtering, one-click filter reset, and server-side query validation without manual submission buttons.
 - **Consultant Assignment & Tenant Isolation**: Consultants can only access and reply to enquiries specifically assigned to them; administrators maintain global reassignment oversight.
 - **Audit Activity Trail**: Automatic chronological logging of creation, assignment, status transitions, staff notes, and draft saves.
 
@@ -152,7 +153,7 @@ sequenceDiagram
 | **AI Integration** | [Google GenAI](https://ai.google.dev/) | `^2.32.0` | Official `@google/genai` SDK targeting `gemini-3.5-flash-lite` |
 | **Rate Limiting** | [Upstash](https://upstash.com/) | `^2.2.0` | `@upstash/ratelimit` & `@upstash/redis` sliding-window limiter |
 | **Validation** | [Zod](https://zod.dev/) | `^4.6.7` | Runtime type inference, strict AI schemas, API boundary checks |
-| **Unit Testing** | [Vitest](https://vitest.dev/) | `^3.2.7` | Fast deterministic test harness (22 test suites, 121 tests) |
+| **Unit Testing** | [Vitest](https://vitest.dev/) | `^3.2.7` | Fast deterministic test harness (24 test suites, 138 tests) |
 | **E2E Testing** | [Playwright](https://playwright.dev/) | `^1.64.1` | Cross-browser integration testing suite (Chromium) |
 
 ---
@@ -371,7 +372,7 @@ Remove-Item Env:\SEED_ADMIN_EMAIL
 Travelora maintains strict testing standards across unit, typecheck, lint, and build stages:
 
 ```powershell
-# 1. Run deterministic Vitest suite (121 tests across 22 files)
+# 1. Run deterministic Vitest suite (138 tests across 24 files)
 npm test
 
 # 2. Run ESLint across entire codebase
@@ -401,16 +402,17 @@ npm run build
 
 ## 🚢 Production Deployment
 
-Travelora is designed for zero-configuration deployment to **Vercel** with **Neon PostgreSQL** and **Upstash Redis**:
+Travelora is deployed to **Vercel** with **Neon PostgreSQL** and **Upstash Redis**:
 
+- **Verified Production URL**: [https://travelora-travel-platform.vercel.app](https://travelora-travel-platform.vercel.app)
+- **Hosting Target**: Vercel Serverless (Next.js App Router)
+- **Database**: Neon Serverless PostgreSQL with PgBouncer connection pooling
+
+### Deployment Runbook Summary
 1. **Database**: Create a project on [Neon](https://console.neon.tech/) (PostgreSQL 16/18). Copy the pooled connection string to `DATABASE_URL` and the direct connection string to `DIRECT_URL`.
-2. **Apply Migrations**: Execute `npx prisma migrate deploy` locally to establish all tables and indexes.
-3. **Distributed Cache**: Create a Redis database on [Upstash](https://console.upstash.com/) and obtain REST credentials.
-4. **Vercel Project Setup**:
-   - Connect repository `rakeshkumar280205/travelora-travel-platform`.
-   - Set framework preset to **Next.js**.
-   - Configure all environment variables in project settings.
-   - Deploy.
+2. **Apply Migrations**: Execute `npx prisma migrate deploy` to establish all tables, compound indexes, and foreign keys.
+3. **Distributed Cache**: Create a Redis database on [Upstash](https://console.upstash.com/) and obtain REST credentials for rate limiting.
+4. **Vercel Setup**: Connect repository `rakeshkumar280205/travelora-travel-platform`, set environment variable names in project settings, and trigger build.
 
 *For complete, detailed step-by-step instructions, see [`deployment.md`](./deployment.md).*
 
@@ -439,6 +441,7 @@ Travelora is designed for zero-configuration deployment to **Vercel** with **Neo
 
 - **Brand**: Travelora Private Atelier
 - **Tagline**: *Journeys beyond ordinary.*
+- **Production URL**: [https://travelora-travel-platform.vercel.app](https://travelora-travel-platform.vercel.app)
 - **Repository**: [https://github.com/rakeshkumar280205/travelora-travel-platform](https://github.com/rakeshkumar280205/travelora-travel-platform)
 - **Architecture**: Enterprise App Router, Serverless PostgreSQL, Distributed Redis Rate Limiting, Pure Vector PDF 1.4 Composition.
 

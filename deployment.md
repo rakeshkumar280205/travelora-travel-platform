@@ -171,10 +171,11 @@ Run the production server locally with:
 npm run start
 ```
 
-The verified SEO/rate-limit milestone produced 57 passing tests in 14 test
+The verified test suite produces 138 passing tests across 24 test
 files. The test files cover AI service classifications, strict AI schemas,
-admin AI routes, enquiry validation and routes, package services and
-validation, rate limiting, API responses, SEO metadata routes, and legacy
+admin AI routes, enquiry validation and routes, dynamic enquiry filtering,
+package services and validation, rate limiting, quote calculations, vector
+PDF generation, blog validation, API responses, SEO metadata routes, and legacy
 redirect proxy behavior.
 
 ## 7. Browser-level end-to-end tests
@@ -431,7 +432,13 @@ npx prisma migrate deploy
 
 ## 13. Vercel deployment
 
-No live deployment URL is claimed. To deploy deliberately:
+### Verified live production deployment
+- **Production URL**: https://travelora-travel-platform.vercel.app
+- **Platform**: Vercel Serverless (Node.js App Router)
+- **Database**: Neon Serverless PostgreSQL with PgBouncer connection pooling
+- **Status**: Verified active and returning HTTP 200 with the complete product experience, public package discovery, destination showcase, blog journal, and admin access.
+
+To deploy deliberately:
 
 1. Import the GitHub repository into Vercel.
 2. Use the detected Next.js build settings.
