@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, BookOpen, FileText, LayoutDashboard, LogOut, Menu, Package, Settings, Users, X } from "lucide-react";
+import { BookOpen, FileText, LayoutDashboard, LogOut, Menu, Package, Users, X } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
 
@@ -14,8 +14,6 @@ const navigation = [
   { label: "Journal", href: "/admin/blog", icon: BookOpen },
   { label: "Enquiries", href: "/admin/enquiries", icon: Users },
   { label: "Quotes", href: "/admin/quotes", icon: FileText },
-  { label: "Activity log", href: "/admin/activity", icon: Activity },
-  { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 export function AdminShell({ children, user }: { children: React.ReactNode; user: AdminUser }) {

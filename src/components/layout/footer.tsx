@@ -38,10 +38,6 @@ export function Footer() {
             <Link href="/#about" className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold">
               Our approach
             </Link>
-            <Link href="/#enquire" className="transition-colors hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-gold">
-              Contact
-            </Link>
-            <span className="text-white/50">Private travel studio</span>
           </div>
         </div>
         <div>
